@@ -1,0 +1,8 @@
+.env
+.env.local
+*.env
+node_modules/
+__pycache__/
+*.pyc
+.DS_Store
+meubanco.db  # se for um banco local
