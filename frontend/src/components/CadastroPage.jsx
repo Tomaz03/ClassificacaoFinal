@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { Button } from './ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
+import { Button } from './ui/Button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/Card';
+import { Input } from './ui/Input';
+import { Label } from './ui/Label';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
-import { Alert, AlertDescription } from './ui/alert';
+import { Alert, AlertDescription } from './ui/Alert';
 import { Loader2 } from 'lucide-react';
 
 export default function CadastroPage() {
