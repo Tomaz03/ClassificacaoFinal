@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button } from './ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2 } from 'lucide-react'; // Importação adicionada para o ícone de carregamento
+import { Alert, AlertDescription } from './ui/alert';
+import { Loader2 } from 'lucide-react';
 
 export default function CadastroPage() {
   const { user, register, handleGoogleLogin } = useAuth();
