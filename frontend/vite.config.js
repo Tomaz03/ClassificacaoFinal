@@ -4,14 +4,6 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
-  resolve: {
-    alias: {
-      // Ajuste o caminho do alias para que ele suba um nível (`..`)
-      // e então entre na pasta `src` do projeto.
-      // Isso corrige o problema do Render
-      '@': path.resolve(__dirname, '../src'),
-    },
-  },
   server: {
     port: 5173,
     host: '0.0.0.0',
@@ -27,6 +19,7 @@ export default defineConfig({
     },
   },
 } );
+
 
 
 
