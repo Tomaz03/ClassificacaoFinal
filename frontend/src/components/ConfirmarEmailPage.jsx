@@ -1,7 +1,7 @@
 // ConfirmarEmailPage.jsx
 import React, { useEffect, useState, useRef } from "react"; // 1. Importe o useRef
 import { useLocation, useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
 import { useAuth } from "../hooks/useAuth";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button.jsx";
