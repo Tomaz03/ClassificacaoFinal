@@ -32,15 +32,20 @@ SECRET_KEY = os.getenv("SECRET_KEY") or secrets.token_hex(32)
 app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
 
 # Defina as URLs e adicione o CORSMiddleware
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173" )
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_URL, "http://localhost:5173", "http://localhost:8000", "https://accounts.google.com"],
+    allow_origins=[
+        FRONTEND_URL,
+        "https://classificacaofinal-frontend.onrender.com",
+        "https://classificacaofinal-backend.onrender.com",
+        "http://localhost:5173",  # Para desenvolvimento local
+        "http://localhost:8000",  # Para desenvolvimento local
+        "https://accounts.google.com" # Para o OAuth do Google
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
- )
-
+)
 # --- IMPORTS DO SEU PRÓPRIO PROJETO (AGORA QUE O APP ESTÁ CONFIGURADO) ---
 # Mova todos os imports "from backend..." para depois da configuração do app
 
