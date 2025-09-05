@@ -10,19 +10,20 @@ export default function ResultadosPorNome() {
   const [error, setError] = useState(null);
   const [buscaRealizada, setBuscaRealizada] = useState(false);
 
-  const API_URL = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+  // ✅ CORREÇÃO: Usar URL absoluta do backend
+  const API_URL = import.meta.env.VITE_API_URL || "https://classificacaofinal-backend.onrender.com";
 
   const getAuthHeaders = () => {
-  const token = localStorage.getItem("access_token"); // ✅ CORREÇÃO
-  return token
-    ? {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      }
-    : {
-        "Content-Type": "application/json",
-      };
-};
+    const token = localStorage.getItem("access_token");
+    return token
+      ? {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        }
+      : {
+          "Content-Type": "application/json",
+        };
+  };
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -34,18 +35,25 @@ export default function ResultadosPorNome() {
 
     try {
       const headers = getAuthHeaders();
-      // ✅ CORREÇÃO: Usando caminho relativo para o proxy
-      const res = await fetch(`/api/results-by-name/?name=${encodeURIComponent(nome)}`, { headers });
+      // ✅ CORREÇÃO: Usando URL absoluta
+      const res = await fetch(`${API_URL}/api/results-by-name/?name=${encodeURIComponent(nome)}`, { headers });
 
       if (!res.ok) {
         if (res.status === 401) {
           throw new Error("Acesso não autorizado. Por favor, faça login novamente.");
         }
-        throw new Error(`Erro ao buscar resultados (${res.status})`);
+        // ✅ CORREÇÃO: Verificar se a resposta é HTML (indicando redirecionamento)
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.includes("text/html")) {
+          throw new Error("Erro de configuração: requisição redirecionada para o frontend. Verifique a configuração do proxy.");
+        }
+        throw new Error(`Erro ao buscar resultados (${res.status}): ${res.statusText}`);
       }
+      
       const data = await res.json();
       setResultados(data);
     } catch (err) {
+      console.error("Erro na busca:", err);
       setError(err.message);
       setResultados([]);
     } finally {
