@@ -22,20 +22,20 @@ export default function CompararConcursos() {
 
   const categoryOrder = { Ampla: 1, PPP: 2, PCD: 3, Indígena: 4 };
 
-  const API_URL = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+  // ✅ CORREÇÃO: Usar URL absoluta do backend
+  const API_URL = import.meta.env.VITE_API_URL || "https://classificacaofinal-backend.onrender.com";
 
-  // Em src/components/CompararConcursos.jsx
-const getAuthHeaders = () => {
-  const token = localStorage.getItem("access_token"); // ✅ CORREÇÃO
-  return token
-    ? {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      }
-    : {
-        "Content-Type": "application/json",
-      };
-};
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("access_token");
+    return token
+      ? {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        }
+      : {
+          "Content-Type": "application/json",
+        };
+  };
 
   const norm = (s) =>
     String(s ?? "")
@@ -50,12 +50,20 @@ const getAuthHeaders = () => {
 
   useEffect(() => {
     const headers = getAuthHeaders();
-    // ✅ CORREÇÃO: Usando caminho relativo para o proxy
-    fetch(`/api/contests/`, { headers })
-      .then((res) => res.json())
+    // ✅ CORREÇÃO: Usando URL absoluta
+    fetch(`${API_URL}/api/contests/`, { headers })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        return res.json();
+      })
       .then((data) => (Array.isArray(data) ? setContests(data) : setContests([])))
-      .catch(() => setContests([]));
-  }, []); // ✅ CORREÇÃO: Removido API_URL das dependências
+      .catch((error) => {
+        console.error("Erro ao carregar concursos:", error);
+        setContests([]);
+      });
+  }, [API_URL]);
 
   const handleCompare = async () => {
     if (!contest1 || !contest2) {
@@ -73,26 +81,43 @@ const getAuthHeaders = () => {
     const headers = getAuthHeaders();
 
     try {
-      // ✅ CORREÇÃO: Usando caminhos relativos para o proxy
-      const resCompare = await fetch(`/api/contests/compare/${contest1}/${contest2}`, { headers });
+      // ✅ CORREÇÃO: Usando URLs absolutas
+      const resCompare = await fetch(`${API_URL}/api/contests/compare/${contest1}/${contest2}`, { headers });
+      
+      if (!resCompare.ok) {
+        throw new Error(`Erro na comparação: HTTP ${resCompare.status}`);
+      }
+      
       const dataCompare = await resCompare.json();
       let matches = dataCompare.matches || [];
 
       const [resExtras1, resExtras2] = await Promise.all([
-        fetch(`/api/contest-results-extra/by-contest/${contest1}`, { headers }),
-        fetch(`/api/contest-results-extra/by-contest/${contest2}`, { headers }),
+        fetch(`${API_URL}/api/contest-results-extra/by-contest/${contest1}`, { headers }),
+        fetch(`${API_URL}/api/contest-results-extra/by-contest/${contest2}`, { headers }),
       ]);
-      const extras1 = await resExtras1.json();
-      const extras2 = await resExtras2.json();
+      
+      if (!resExtras1.ok || !resExtras2.ok) {
+        console.warn("Erro ao carregar extras, continuando sem eles");
+      }
+      
+      const extras1 = resExtras1.ok ? await resExtras1.json() : [];
+      const extras2 = resExtras2.ok ? await resExtras2.json() : [];
+      
       setExtrasMap1(new Map((extras1 || []).map((e) => [e.contest_result_id, e.situacao || "Aguardando"])));
       setExtrasMap2(new Map((extras2 || []).map((e) => [e.contest_result_id, e.situacao || "Aguardando"])));
 
       const [resList1, resList2] = await Promise.all([
-        fetch(`/api/contest-results/${contest1}`, { headers }),
-        fetch(`/api/contest-results/${contest2}`, { headers }),
+        fetch(`${API_URL}/api/contest-results/${contest1}`, { headers }),
+        fetch(`${API_URL}/api/contest-results/${contest2}`, { headers }),
       ]);
+      
+      if (!resList1.ok || !resList2.ok) {
+        throw new Error("Erro ao carregar resultados dos concursos");
+      }
+      
       const list1 = await resList1.json();
       const list2 = await resList2.json();
+      
       setIndexC1(new Map((list1 || []).map((r) => [keyTriplo(r.name, r.category, r.position), r.id])));
       setIndexC2(new Map((list2 || []).map((r) => [keyTriplo(r.name, r.category, r.position), r.id])));
 
@@ -109,7 +134,8 @@ const getAuthHeaders = () => {
 
       setResults(matches);
     } catch (err) {
-      console.error(err);
+      console.error("Erro na comparação:", err);
+      alert(`Erro ao comparar concursos: ${err.message}`);
       setResults([]);
     } finally {
       setIsLoading(false);
