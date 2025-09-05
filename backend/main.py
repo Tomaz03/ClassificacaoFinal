@@ -24,6 +24,9 @@ load_dotenv()
 
 # --- CONFIGURAÇÃO INICIAL DA APLICAÇÃO ---
 
+# URL do frontend (usada no CORS e no fluxo do Google OAuth)
+FRONTEND_URL = os.getenv("FRONTEND_URL", "https://classificacaofinal-frontend.onrender.com")
+
 # Crie a instância do app ANTES de importar suas próprias rotas/módulos
 app = FastAPI(title="Classificação de Concursos — Auth API")
 
@@ -36,16 +39,14 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         FRONTEND_URL,
-        "https://classificacaofinal-frontend.onrender.com",
-        "https://classificacaofinal-backend.onrender.com",
         "http://localhost:5173",  # Para desenvolvimento local
         "http://localhost:8000",  # Para desenvolvimento local
-        "https://accounts.google.com" # Para o OAuth do Google
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 # --- IMPORTS DO SEU PRÓPRIO PROJETO (AGORA QUE O APP ESTÁ CONFIGURADO) ---
 # Mova todos os imports "from backend..." para depois da configuração do app
 
@@ -88,7 +89,8 @@ oauth.register(
     client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
     server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
     client_kwargs={'scope': 'openid email profile'},
- )
+)
+
 # Esquema de resposta para o token de acesso
 class LoginOut(BaseModel):
     access_token: str
@@ -97,6 +99,7 @@ class LoginOut(BaseModel):
 
 # Autenticação via token
 oauth2_scheme = HTTPBearer()
+
 
 def get_current_user(
     db: Session = Depends(get_db),
