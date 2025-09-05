@@ -22,17 +22,18 @@ export default function CompararConcursos() {
 
   const categoryOrder = { Ampla: 1, PPP: 2, PCD: 3, Indígena: 4 };
 
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem("token");
-    return token
-      ? {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        }
-      : {
-          "Content-Type": "application/json",
-        };
-  };
+  // Em src/components/CompararConcursos.jsx
+const getAuthHeaders = () => {
+  const token = localStorage.getItem("access_token"); // ✅ CORREÇÃO
+  return token
+    ? {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      }
+    : {
+        "Content-Type": "application/json",
+      };
+};
 
   const norm = (s) =>
     String(s ?? "")
