@@ -22,6 +22,8 @@ export default function CompararConcursos() {
 
   const categoryOrder = { Ampla: 1, PPP: 2, PCD: 3, Indígena: 4 };
 
+  const API_URL = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+
   // Em src/components/CompararConcursos.jsx
 const getAuthHeaders = () => {
   const token = localStorage.getItem("access_token"); // ✅ CORREÇÃO
