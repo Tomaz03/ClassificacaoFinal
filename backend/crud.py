@@ -44,16 +44,16 @@ def create_user(db: Session, user_data: dict):
     raw_password = user_data['password']
     if raw_password and not raw_password.startswith("$2b$"):  # checagem básica bcrypt
         logger.warning("Senha recebida não parece hasheada. Verifique se está aplicando hash antes de salvar!")
-    hashed_password = raw_password
+    hashed_password = user_data['password']
 
     user = models.User(
-        email=user_data['email'],
-        username=username,
-        hashed_password=hashed_password,
-        is_active=True,
-        role=user_data.get('role', 'comum'),
-        provider=user_data.get('provider', 'local'),
-        email_confirmed=False,
+       email=user_data['email'],
+       username=username,
+       hashed_password=hashed_password,  # agora recebe o hash corretamente
+       is_active=True,
+       role=user_data.get('role', 'comum'),
+       provider=user_data.get('provider', 'local'),
+       email_confirmed=False,
     )
 
     # Gera token de confirmação seguro
