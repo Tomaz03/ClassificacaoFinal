@@ -1,22 +1,28 @@
-from pydantic import BaseModel, EmailStr, Field
-from typing import List, Optional, Dict, Any, Union
+from pydantic import BaseModel, EmailStr, Field, field_validator
+from typing import List, Optional, Dict, Any
 from datetime import datetime, date
 from backend.models import Contest
+import json
+
 
 class RegisterIn(BaseModel):
     email: EmailStr
     password: str
     name: Optional[str] = None
 
+
 class LoginIn(BaseModel):
     email: EmailStr
     password: str
 
+
 class TokenIn(BaseModel):
     token: str
 
+
 class ResendEmailIn(BaseModel):
     email: EmailStr
+
 
 class UserOut(BaseModel):
     id: int
@@ -25,8 +31,8 @@ class UserOut(BaseModel):
     picture: Optional[str] = None
     provider: str
     role: str
-    email_confirmed: bool # Adicionado para retornar o status de confirmação
-    
+    email_confirmed: bool  # Adicionado para retornar o status de confirmação
+
     class Config:
         from_attributes = True
 
@@ -40,8 +46,10 @@ class ContestBase(BaseModel):
     edital_url: str
     cargo: str
 
+
 class ContestCreate(ContestBase):
     pass
+
 
 class Contest(ContestBase):
     id: int
@@ -61,11 +69,24 @@ class ContestResultBase(BaseModel):
     name: str
     final_score: float
 
+
 class ContestResultExtraBase(BaseModel):
     situacao: Optional[str] = None
     vai_assumir: Optional[str] = None
-    outras_listas: Optional[dict] = None
-    contatos: Optional[dict] = None
+    outras_listas: Optional[Dict[str, Any]] = None
+    contatos: Optional[Dict[str, Any]] = None
+
+    @field_validator("outras_listas", "contatos", mode="before")
+    def parse_json(cls, v):
+        if v is None:
+            return None
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except Exception:
+                return None
+        return v
+
 
 # 2. Schemas de Criação/Update
 class ContestResultCreate(BaseModel):
@@ -74,14 +95,16 @@ class ContestResultCreate(BaseModel):
     names: List[str]
     final_scores: List[float]
 
+
 class ContestResultExtraCreate(ContestResultExtraBase):
     contest_result_id: int
+
 
 class ContestResultExtraUpdate(ContestResultExtraBase):
     pass
 
+
 # 3. Schemas Completos (usados em respostas da API)
-#    Defina 'ContestResultExtra' primeiro, pois 'ContestResult' depende dele.
 class ContestResultExtra(ContestResultExtraBase):
     id: int
     contest_result_id: int
@@ -91,17 +114,17 @@ class ContestResultExtra(ContestResultExtraBase):
     class Config:
         from_attributes = True
 
-#    Agora defina 'ContestResult', que usa 'Contest' e 'ContestResultExtra'
+
 class ContestResult(ContestResultBase):
     id: int
     created_at: datetime
-    
-    # Estes tipos agora são conhecidos pelo Python
-    contest: Contest 
-    extra: Optional[ContestResultExtra] = None 
+
+    contest: Contest
+    extra: Optional[ContestResultExtra] = None
 
     class Config:
         from_attributes = True
+
 
 
 
