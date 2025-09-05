@@ -11,16 +11,16 @@ export default function ResultadosPorNome() {
   const [buscaRealizada, setBuscaRealizada] = useState(false);
 
   const getAuthHeaders = () => {
-    const token = localStorage.getItem("token");
-    return token
-      ? {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        }
-      : {
-          "Content-Type": "application/json",
-        };
-  };
+  const token = localStorage.getItem("access_token"); // ✅ CORREÇÃO
+  return token
+    ? {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      }
+    : {
+        "Content-Type": "application/json",
+      };
+};
 
   const handleSearch = async (e) => {
     e.preventDefault();
