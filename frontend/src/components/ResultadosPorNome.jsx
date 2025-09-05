@@ -10,6 +10,8 @@ export default function ResultadosPorNome() {
   const [error, setError] = useState(null);
   const [buscaRealizada, setBuscaRealizada] = useState(false);
 
+  const API_URL = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+
   const getAuthHeaders = () => {
   const token = localStorage.getItem("access_token"); // ✅ CORREÇÃO
   return token
