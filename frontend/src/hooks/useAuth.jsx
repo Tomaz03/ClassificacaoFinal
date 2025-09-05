@@ -16,6 +16,9 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // 🔑 URL base do backend (Render ou localhost)
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
   // Verificar se há token salvo no localStorage ao inicializar
   useEffect(() => {
     const token = localStorage.getItem('access_token');
@@ -37,11 +40,11 @@ export const AuthProvider = ({ children }) => {
   // Função para logar com um token (usado na confirmação de e-mail e Google Login)
   const loginWithToken = async (token) => {
     try {
-      const response = await fetch('http://localhost:8000/auth/me', {
+      const response = await fetch(`${API_URL}/auth/me`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
-      } );
+      });
       
       if (!response.ok) {
         throw new Error('Falha ao buscar dados do usuário após a confirmação.');
@@ -61,12 +64,12 @@ export const AuthProvider = ({ children }) => {
   // Função de login com e-mail e senha
   const login = async (email, password) => {
     try {
-      const response = await fetch('http://localhost:8000/auth/login', {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password } ),
+        body: JSON.stringify({ email, password }),
       });
       
       if (!response.ok) {
@@ -77,11 +80,11 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
       localStorage.setItem('access_token', data.access_token);
       
-      const userResponse = await fetch('http://localhost:8000/auth/me', {
+      const userResponse = await fetch(`${API_URL}/auth/me`, {
         headers: {
           'Authorization': `Bearer ${data.access_token}`,
         },
-      } );
+      });
       
       if (!userResponse.ok) {
         throw new Error('Falha ao buscar dados do usuário.');
@@ -105,10 +108,10 @@ export const AuthProvider = ({ children }) => {
     }
     
     try {
-      const response = await fetch('http://localhost:8000/auth/register', {
+      const response = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password } ),
+        body: JSON.stringify({ name, email, password }),
       });
 
       const data = await response.json();
@@ -132,70 +135,66 @@ export const AuthProvider = ({ children }) => {
     navigate('/login', { replace: true });
   };
 
-  // ✅ FUNÇÃO DE LOGIN COM GOOGLE IMPLEMENTADA
+  // ✅ Função de login com Google
   const handleGoogleLogin = () => {
-  return new Promise((resolve, reject) => {
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-    const frontendOrigin = window.location.origin;
-    const googleAuthUrl = `${backendUrl}/auth/google?frontend_origin=${encodeURIComponent(frontendOrigin)}`;
+    return new Promise((resolve, reject) => {
+      const backendUrl = API_URL;
+      const frontendOrigin = window.location.origin;
+      const googleAuthUrl = `${backendUrl}/auth/google?frontend_origin=${encodeURIComponent(frontendOrigin)}`;
 
-    const popup = window.open(googleAuthUrl, '_blank', 'width=500,height=600');
+      const popup = window.open(googleAuthUrl, '_blank', 'width=500,height=600');
 
-    const messageListener = async (event) => {
-  console.log("Mensagem recebida:", event.origin, event.data);
-  
-  // Permitir tanto localhost quanto 127.0.0.1
-  const allowedOrigins = [
-    window.location.origin,
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-    'http://localhost:8000',
-    'http://127.0.0.1:8000'
-  ];
-  
-  if (!allowedOrigins.includes(event.origin)) {
-    console.log("Origem não permitida:", event.origin);
-    return;
-  }
+      const messageListener = async (event) => {
+        console.log("Mensagem recebida:", event.origin, event.data);
 
-  if (event.data?.status === 'success' && event.data?.access_token) {
-    console.log("Login com Google bem-sucedido, token recebido");
-    const { access_token } = event.data;
-    const loginResult = await loginWithToken(access_token);
+        const allowedOrigins = [
+          window.location.origin,
+          backendUrl,
+        ];
 
-    cleanup();
-    if (loginResult.success) {
-      navigate('/meus-resultados');
-      resolve(loginResult);
-    } else {
-      console.log("Falha no loginWithToken:", loginResult.error);
-      reject(new Error('Falha ao processar o token do Google.'));
-    }
-  } else if (event.data?.status === 'error') {
-    console.log("Erro no login com Google:", event.data.message);
-    cleanup();
-    reject(new Error(event.data.message || 'Erro no login com Google.'));
-  }
-};
+        if (!allowedOrigins.includes(event.origin)) {
+          console.warn("Origem não permitida:", event.origin);
+          return;
+        }
 
-    const timer = setInterval(() => {
-      if (popup && popup.closed) {
-        cleanup();
-        reject(new Error('Login com Google cancelado.'));
-      }
-    }, 500);
+        if (event.data?.status === 'success' && event.data?.access_token) {
+          console.log("Login com Google bem-sucedido, token recebido");
+          const { access_token } = event.data;
+          const loginResult = await loginWithToken(access_token);
 
-    const cleanup = () => {
-      clearInterval(timer);
-      window.removeEventListener('message', messageListener);
-      if (popup && !popup.closed) {
-        popup.close();
-      }
-    };
+          cleanup();
+          if (loginResult.success) {
+            navigate('/meus-resultados');
+            resolve(loginResult);
+          } else {
+            console.log("Falha no loginWithToken:", loginResult.error);
+            reject(new Error('Falha ao processar o token do Google.'));
+          }
+        } else if (event.data?.status === 'error') {
+          console.log("Erro no login com Google:", event.data.message);
+          cleanup();
+          reject(new Error(event.data.message || 'Erro no login com Google.'));
+        }
+      };
 
-    window.addEventListener('message', messageListener);
-  });
-};
+      const timer = setInterval(() => {
+        if (popup && popup.closed) {
+          cleanup();
+          reject(new Error('Login com Google cancelado.'));
+        }
+      }, 500);
+
+      const cleanup = () => {
+        clearInterval(timer);
+        window.removeEventListener('message', messageListener);
+        if (popup && !popup.closed) {
+          popup.close();
+        }
+      };
+
+      window.addEventListener('message', messageListener);
+    });
+  };
 
   // Função para obter o token de autorização
   const getAuthToken = () => {
@@ -236,11 +235,12 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
-    handleGoogleLogin, // Agora implementada
+    handleGoogleLogin,
     loginWithToken,
     authenticatedFetch
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+
 
