@@ -32,16 +32,16 @@ export default function Home() {
 
       {/* Cabeçalho */}
       <header className="bg-blue-950 shadow-md px-4 py-2 flex items-center justify-between z-10">
-  <div className="flex items-center gap-3">
-    <img src={logo} alt="Questões da Aprovação Logo" className="h-12 sm:h-16 w-auto object-contain mt-1" />
-  </div>
-  <button
-    onClick={() => navigate('/login')}
-    className="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md flex items-center transition-transform transform hover:scale-105"
-  >
-    Login
-  </button>
-</header>
+        <div className="flex items-center gap-3">
+          <img src={logo} alt="Questões da Aprovação Logo" className="h-12 sm:h-16 w-auto object-contain mt-1" />
+        </div>
+        <button
+          onClick={() => navigate('/login')}
+          className="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md flex items-center transition-transform transform hover:scale-105"
+        >
+          Login
+        </button>
+      </header>
 
       {/* Seção principal */}
       <main className="flex flex-col items-center text-center bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-6 py-16">
@@ -50,32 +50,38 @@ export default function Home() {
         </h1>
         <p className="text-lg sm:text-xl max-w-3xl mb-8 leading-relaxed text-justify md:text-center">
           A plataforma mais completa para acompanhar resultados de concursos públicos.
-              Monitore sua posição, compare com outros candidatos e fique por dentro de todas as atualizações.
+          Monitore sua posição, compare com outros candidatos e fique por dentro de todas as atualizações.
         </p>
         <button
-           onClick={() => navigate('/cadastro')}
+          onClick={() => navigate('/cadastro')}
           className="bg-green-600 text-white hover:bg-blue-950 hover:text-white font-semibold px-6 py-3 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105"
         >
           CADASTRE-SE GRATUITAMENTE
         </button>
       </main>
 
-      {/* Benefícios - Cards responsivos */}
-      <section className="py-12 px-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto text-center">
+      {/* Benefícios - Cards responsivos e alinhados com a página */}
+      <section className="py-12 px-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto text-center">
         <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105">
           <div className="text-5xl mb-3 text-pink-500">🧠</div>
           <h3 className="text-xl font-bold mb-2 text-gray-800">Monitore o resultado final dos concursos</h3>
-          <p className="text-gray-600"> coloque um texto aqui</p>
+          <p className="text-gray-600 text-sm text-justify leading-relaxed">
+            Acompanhe em tempo real a classificação final do concurso, com atualizações automáticas e notificações personalizadas.
+          </p>
         </div>
         <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105">
           <div className="text-5xl mb-3 text-blue-500">📊</div>
           <h3 className="text-xl font-bold mb-2 text-gray-800">Comparação com outras listas de concursos</h3>
-          <p className="text-gray-600"> coloque um texto aqui.</p>
+          <p className="text-gray-600 text-sm text-justify leading-relaxed">
+            Compare sua posição com outros candidatos em diferentes concursos, identificando tendências e estratégias de aprovação.
+          </p>
         </div>
         <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105">
           <div className="text-5xl mb-3 text-teal-500">🚀</div>
           <h3 className="text-xl font-bold mb-2 text-gray-800">Consulta dos Resultados do candidato pelo seu nome</h3>
-          <p className="text-gray-600"> coloque um texto aqui.</p>
+          <p className="text-gray-600 text-sm text-justify leading-relaxed">
+            Encontre rapidamente sua posição digitando seu nome, sem precisar baixar arquivos ou procurar manualmente.
+          </p>
         </div>
       </section>
 
@@ -87,7 +93,7 @@ export default function Home() {
         </p>
         <p className="text-xl font-semibold text-blue-700 mb-6">A prática leva à perfeição – e seus resultados está a apenas um clique!</p>
         <button
-           onClick={() => navigate('/cadastro')}
+          onClick={() => navigate('/cadastro')}
           className="bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-semibold px-6 py-3 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105"
         >
           Junte-se à comunidade dos aprovados. Vamos juntos?
