@@ -215,7 +215,7 @@ async def google_auth(request: Request, db: Session = Depends(get_db)):
     try:
         print("✅ Iniciando callback do Google OAuth")
         
-        # Obter token
+        # Obter token do Google
         token = await oauth.google.authorize_access_token(request)
         print(f"✅ Token recebido: {token}")
         
@@ -223,7 +223,7 @@ async def google_auth(request: Request, db: Session = Depends(get_db)):
             print("❌ Token não recebido")
             raise HTTPException(status_code=400, detail="Token de acesso inválido.")
 
-        # Obter informações do usuário
+        # Obter informações do usuário no Google
         resp = await oauth.google.get(
             "https://openidconnect.googleapis.com/v1/userinfo",
             token=token
@@ -235,6 +235,7 @@ async def google_auth(request: Request, db: Session = Depends(get_db)):
         if not email:
             raise HTTPException(status_code=400, detail="E-mail não encontrado na conta Google.")
 
+        # Buscar ou criar usuário no banco
         user = get_user_by_email(db, email)
         if not user:
             user = create_user_google(
@@ -246,6 +247,7 @@ async def google_auth(request: Request, db: Session = Depends(get_db)):
                 },
             )
 
+        # Criar token JWT
         token_payload = {
             "sub": str(user.id),
             "email": user.email,
@@ -253,8 +255,10 @@ async def google_auth(request: Request, db: Session = Depends(get_db)):
         }
         access_token = create_access_token(subject=token_payload)
 
-        frontend_origin = request.session.get('frontend_origin', FRONTEND_URL)
-        
+        # Origem do frontend (preferência: session → fallback: FRONTEND_URL)
+        frontend_origin = request.session.get("frontend_origin", FRONTEND_URL)
+
+        # HTML que envia o token para o frontend via postMessage
         response_html = f"""
         <!DOCTYPE html>
         <html>
@@ -279,8 +283,9 @@ async def google_auth(request: Request, db: Session = Depends(get_db)):
         </html>
         """
         return Response(content=response_html, media_type="text/html")
+
     except Exception as e:
-        print(f"Erro no login com Google: {e}")
+        print(f"❌ Erro no login com Google: {e}")
         response_html = f"""
         <!DOCTYPE html>
         <html>
