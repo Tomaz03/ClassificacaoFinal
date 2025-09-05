@@ -310,8 +310,9 @@ export default function MeusResultados() {
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-  const getAuthHeaders = () => {
-  const token = localStorage.getItem("access_token"); // Alterado de "token" para "access_token"
+  // Em src/components/MeusResultados.jsx
+const getAuthHeaders = () => {
+  const token = localStorage.getItem("access_token"); // ✅ CORRETO
   return token ? {
     "Content-Type": "application/json",
     "Authorization": `Bearer ${token}`
