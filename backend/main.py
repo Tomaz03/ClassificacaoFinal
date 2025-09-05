@@ -461,4 +461,12 @@ def compare_contests_api(contest_id_1: int, contest_id_2: int, db: Session = Dep
     results = crud.compare_contests(db, contest_id_1, contest_id_2)
     return {"matches": results, "count": len(results)}
 
+@app.post("/api/results-by-names-batch")
+def results_by_names_batch(names: List[str], db: Session = Depends(get_db)):
+    """
+    Recebe uma lista de nomes e retorna, para cada um, 
+    se já foi nomeado/empossado em qualquer concurso.
+    """
+    return crud.get_results_by_names_batch(db, names)
+
 
