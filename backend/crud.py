@@ -172,14 +172,19 @@ def resend_confirmation_email(db: Session, email: str) -> bool:
 
 
 def create_user_google(db: Session, user_data: dict):
+    """
+    Cria um novo usuário vindo do fluxo Google OAuth.
+    """
     try:
-        db_user = User(
+        # ✅ CORREÇÃO: Use 'models.User' em vez de apenas 'User'
+        db_user = models.User(
             email=user_data["email"],
             username=user_data.get("name", user_data["email"].split('@')[0]),
             hashed_password="oauth_google",  # Senha placeholder para usuários OAuth
             provider="google",
             email_confirmed=True,  # Google já verifica o e-mail
-            is_active=True
+            is_active=True,
+            role='comum' # É uma boa prática definir um role padrão
         )
         db.add(db_user)
         db.commit()
@@ -187,6 +192,8 @@ def create_user_google(db: Session, user_data: dict):
         return db_user
     except Exception as e:
         db.rollback()
+        # Logar o erro pode ser útil para depuração
+        logger.error(f"Falha ao criar usuário do Google: {e}")
         raise e
 
 # Criar concurso
