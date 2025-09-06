@@ -247,29 +247,28 @@ def get_extra_by_result_id(db: Session, contest_result_id: int):
         models.ContestResultExtra.contest_result_id == contest_result_id
     ).first()
 
-def create_or_update_extra(db: Session, contest_result_id: int, extra_data: dict):
-    db_extra = get_extra_by_result_id(db, contest_result_id)
-    
-    # ✅ CORREÇÃO: Remove a chave 'contest_result_id' do dicionário para evitar o erro.
-    # Isso garante que o dicionário contenha apenas os campos a serem atualizados.
-    if 'contest_result_id' in extra_data:
-        del extra_data['contest_result_id']
+def create_or_update_extra(db: Session, extra_data: Dict):
+    contest_result_id = extra_data.get("contest_result_id")
+    if contest_result_id is None:
+        raise ValueError("contest_result_id é obrigatório")
 
-    if db_extra:
-        # Se o registro já existe, atualiza os campos
-        for key, value in extra_data.items():
-            setattr(db_extra, key, value)
+    # Remove contest_result_id para não conflitar no setattr
+    data_to_update = {k: v for k, v in extra_data.items() if k != "contest_result_id"}
+
+    # Verifica se já existe registro extra
+    db_obj = db.query(models.ContestResultExtra).filter_by(contest_result_id=contest_result_id).first()
+
+    if db_obj:
+        for key, value in data_to_update.items():
+            setattr(db_obj, key, value)
     else:
-        # Se não existe, cria um novo registro
-        db_extra = models.ContestResultExtra(
-            contest_result_id=contest_result_id,
-            **extra_data
-        )
-        db.add(db_extra)
-        
+        db_obj = models.ContestResultExtra(contest_result_id=contest_result_id, **data_to_update)
+        db.add(db_obj)
+
     db.commit()
-    db.refresh(db_extra)
-    return db_extra
+    db.refresh(db_obj)
+    return db_obj
+
 
 def get_extras_by_contest(db: Session, contest_id: int):
     return (
