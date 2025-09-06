@@ -524,7 +524,7 @@ const getAuthHeaders = () => {
 
       try {
         const headers = getAuthHeaders();
-        const res = await fetch(`${API_URL}/api/results-by-names-batch/`, {
+        const res = await fetch(`${API_URL}/api/results-by-names-batch`, {
           method: "POST",
           headers,
           body: JSON.stringify({ names: nomes }),
