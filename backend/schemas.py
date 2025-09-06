@@ -125,6 +125,9 @@ class ContestResult(ContestResultBase):
     class Config:
         from_attributes = True
 
+class NamesBatchRequest(BaseModel):
+    names: List[str]
+
 
 
 
