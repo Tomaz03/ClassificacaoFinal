@@ -391,16 +391,20 @@ def get_contest_result_extra(contest_result_id: int, db: Session = Depends(get_d
         raise HTTPException(status_code=404, detail="Extras não encontrados para este resultado")
     return extra
 
-@app.post("/api/contest-results-extra/", response_model=ContestResultExtra)
+@app.post("/api/contest-results-extra/", response_model=schemas.ContestResultExtra)
 def create_or_update_contest_result_extra(
-    extra: ContestResultExtraCreate, 
-    db: Session = Depends(get_db)
-    # Removi a dependência de usuário aqui, pois um usuário comum deve poder salvar seus dados.
-    # Se precisar de autenticação, use auth.get_current_user em vez de get_current_admin_user
+    extra_data: schemas.ContestResultExtraCreate,
+    db: Session = Depends(get_db),
 ):
-    # ✅ MELHORIA: Passamos os dados de forma mais clara para a função CRUD.
-    update_data = extra.model_dump(exclude_unset=True)
-    return crud.create_or_update_extra(db, extra.contest_result_id, update_data)
+    try:
+        return crud.create_or_update_extra(db, extra_data.dict())
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        # Logar para debug no Render
+        print(f"Erro inesperado ao salvar contest_result_extra: {e}")
+        raise HTTPException(status_code=500, detail="Erro interno do servidor")
+
 
 @app.get("/api/contest-results-extra/by-contest/{contest_id}", response_model=List[ContestResultExtra])
 def get_extras_by_contest(contest_id: int, db: Session = Depends(get_db)):
