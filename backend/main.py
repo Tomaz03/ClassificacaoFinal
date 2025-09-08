@@ -1,7 +1,7 @@
 # --- IMPORTS PADRÃO E DE BIBLIOTECAS ---
 import os
 import secrets
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 # FastAPI e componentes relacionados
 from fastapi import FastAPI, Depends, HTTPException, status, Request, Query
@@ -13,6 +13,7 @@ from fastapi.responses import Response
 
 # SQLAlchemy e Pydantic
 from sqlalchemy.orm import Session
+from sqlalchemy import and_
 from pydantic import BaseModel
 
 # Authlib e DotEnv
@@ -381,8 +382,18 @@ def create_results(data: schemas.ContestResultCreate, db: Session = Depends(get_
     return crud.create_contest_results(db, data)
 
 @app.get("/api/contest-results/{contest_id}", response_model=List[schemas.ContestResult])
-def list_results(contest_id: int, db: Session = Depends(get_db)):
-    return crud.get_results_by_contest(db, contest_id)
+def list_results(
+    contest_id: int, 
+    skip: int = 0, 
+    limit: int = 100,
+    category: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+):
+    return crud.get_results_by_contest(db, contest_id, skip=skip, limit=limit, category=category)
+
+@app.get("/api/contest-results-count/{contest_id}")
+def get_results_count(contest_id: int, category: Optional[str] = Query(None), db: Session = Depends(get_db)):
+    return {"total": crud.get_results_count(db, contest_id, category)}
 
 @app.get("/api/contest-results-extra/{contest_result_id}", response_model=ContestResultExtra)
 def get_contest_result_extra(contest_result_id: int, db: Session = Depends(get_db)):
@@ -464,6 +475,7 @@ def get_results_by_criteria(
 def compare_contests_api(contest_id_1: int, contest_id_2: int, db: Session = Depends(get_db)):
     results = crud.compare_contests(db, contest_id_1, contest_id_2)
     return {"matches": results, "count": len(results)}
+
 
 @app.post("/api/results-by-names-batch")
 def results_by_names_batch(payload: schemas.NamesBatchRequest, db: Session = Depends(get_db)):
