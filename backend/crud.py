@@ -5,6 +5,7 @@ from backend.email_service import email_service
 from typing import List, Optional, Dict, Any, Union
 from datetime import datetime, timedelta, timezone
 import secrets
+from sqlalchemy import func
 from fastapi import HTTPException, status
 import unicodedata
 import logging
@@ -234,13 +235,25 @@ def create_contest_results(db: Session, data: schemas.ContestResultCreate):
     return results
 
 # Listar resultados de um concurso
-def get_results_by_contest(db: Session, contest_id: int):
-    return db.query(models.ContestResult).filter(
-        models.ContestResult.contest_id == contest_id
-    ).order_by(
-        models.ContestResult.category,
-        models.ContestResult.position
-    ).all()
+def get_results_by_contest(db: Session, contest_id: int, skip: int = 0, limit: int = 100, category: Optional[str] = None):
+    query = db.query(models.ContestResult).filter(models.ContestResult.contest_id == contest_id)
+    if category:
+        cat = category.strip().lower()
+        query = query.filter(func.lower(models.ContestResult.category) == cat)
+    return (
+        query
+        .order_by(models.ContestResult.category, models.ContestResult.position)
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+def get_results_count(db: Session, contest_id: int, category: Optional[str] = None) -> int:
+    query = db.query(models.ContestResult).filter(models.ContestResult.contest_id == contest_id)
+    if category:
+        cat = category.strip().lower()
+        query = query.filter(func.lower(models.ContestResult.category) == cat)
+    return query.count()
 
 def get_extra_by_result_id(db: Session, contest_result_id: int):
     return db.query(models.ContestResultExtra).filter(
@@ -293,33 +306,23 @@ def delete_results_by_category(db: Session, contest_id: int, category: str):
 
 def get_all_results_by_name(db: Session, name: str):
     """
-    Retorna todas as participações de um candidato em concursos,
-    ignorando diferenças de maiúsculas/minúsculas, acentos e cedilhas.
+    Busca participações de um candidato em concursos,
+    já filtrando no banco (muito mais rápido).
     """
-    # Normaliza o nome buscado
     name_normalizado = normalizar_nome(name)
 
-    query = (
+    resultados = (
         db.query(models.ContestResult)
-        .options(
-            joinedload(models.ContestResult.contest), # Carrega os dados do concurso
-            joinedload(models.ContestResult.extra)    # Carrega os dados extras (situação, etc.)
+        .join(models.ContestResult.contest)  # pega dados do concurso
+        .outerjoin(models.ContestResult.extra)  # pega dados extras
+        .filter(
+            func.lower(func.unaccent(models.ContestResult.name)) == name_normalizado
         )
+        .order_by(models.ContestResult.contest_id, models.ContestResult.position)
+        .all()
     )
-    
-    todos_resultados = query.all()
 
-    # Busca todos os resultados no banco
-    resultados = db.query(models.ContestResult).order_by(
-        models.ContestResult.position
-    ).all()
-
-    # Filtra aplicando a normalização
-    resultados_filtrados = [
-        r for r in resultados if normalizar_nome(r.name) == name_normalizado
-    ]
-
-    return resultados_filtrados
+    return resultados
 
 def update_contest(db: Session, contest_id: int, contest_update: schemas.ContestCreate):
     """
@@ -364,34 +367,59 @@ def get_results_by_name_and_category(db: Session, name: str, category: str):
 
 def compare_contests(db: Session, contest_id_1: int, contest_id_2: int):
     """
-    Compara dois concursos e retorna os nomes que aparecem em ambos,
-    indicando as categorias (listas) e posições.
+    Compara dois concursos diretamente no SQL,
+    já incluindo extras (situação, etc).
+    Retorna formato pronto para o frontend.
     """
-    results_1 = db.query(models.ContestResult).filter(models.ContestResult.contest_id == contest_id_1).all()
-    results_2 = db.query(models.ContestResult).filter(models.ContestResult.contest_id == contest_id_2).all()
 
-    # Mapear nome -> lista de categorias e posições
+    from backend.models import ContestResult
+
+    # Carrega com join para trazer extras sem consultas adicionais
+    results_1 = db.query(ContestResult).options(joinedload(ContestResult.extra)).filter(
+        ContestResult.contest_id == contest_id_1
+    ).all()
+
+    results_2 = db.query(ContestResult).options(joinedload(ContestResult.extra)).filter(
+        ContestResult.contest_id == contest_id_2
+    ).all()
+
+    # Mapear nome normalizado -> lista de dados
+    def normalizar(nome: str) -> str:
+        if not nome:
+            return ""
+        return (
+            unicodedata.normalize("NFD", nome)
+            .encode("ascii", "ignore")
+            .decode("utf-8")
+            .lower()
+            .strip()
+        )
+
     map_1, map_2 = {}, {}
     for r in results_1:
-        map_1.setdefault(r.name.lower(), []).append({
+        map_1.setdefault(normalizar(r.name), []).append({
             "category": r.category,
-            "position": r.position
+            "position": r.position,
+            "situacao": r.extra.situacao if r.extra else "Aguardando"
         })
     for r in results_2:
-        map_2.setdefault(r.name.lower(), []).append({
+        map_2.setdefault(normalizar(r.name), []).append({
             "category": r.category,
-            "position": r.position
+            "position": r.position,
+            "situacao": r.extra.situacao if r.extra else "Aguardando"
         })
 
     # Interseção
     common_names = set(map_1.keys()) & set(map_2.keys())
 
     response = []
-    for name in sorted(common_names):
+    for name_norm in sorted(common_names):
+        # Pega o nome "original" de um dos concursos
+        nome_exibicao = (results_1[0].name if results_1 else name_norm)
         response.append({
-            "name": name,
-            "contest_1": map_1[name],
-            "contest_2": map_2[name]
+            "name": nome_exibicao,
+            "contest_1": map_1[name_norm],
+            "contest_2": map_2[name_norm],
         })
 
     return response
