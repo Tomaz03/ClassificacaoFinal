@@ -307,6 +307,7 @@ export default function MeusResultados() {
   const [outrasStatusMap, setOutrasStatusMap] = useState({});
   const [searchName, setSearchName] = useState("");
   const [termoBusca, setTermoBusca] = useState("");
+  const [totalResultados, setTotalResultados] = useState(0);
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -351,70 +352,86 @@ const getAuthHeaders = () => {
   };
 
   // ✅ CORREÇÃO: Função buscarResultados com autenticação adequada
-  const buscarResultados = useCallback(
-    async () => {
-      if (!idListaSelecionada) return;
-      setCarregando(true);
-      setErro("");
-      setListaResultados([]);
-      setPaginaAtual(1);
-      
-      try {
-        const headers = getAuthHeaders();
-        
-        // Buscar resultados do concurso
-        const resResultados = await fetch(`${API_URL}/api/contest-results/${idListaSelecionada}`, {
-          headers
-        });
-        
-        if (!resResultados.ok) {
-          throw new Error(`Erro ao buscar resultados: ${resResultados.status} ${resResultados.statusText}`);
-        }
-        
-        const dataResultados = await resResultados.json();
+  const buscarResultados = useCallback(async (pagina = 1) => {
+  if (!idListaSelecionada) return;
+  setCarregando(true);
+  setErro("");
 
-        // Buscar dados extras
-        const resExtras = await fetch(`${API_URL}/api/contest-results-extra/by-contest/${idListaSelecionada}`, {
-          headers
-        });
-        
-        if (!resExtras.ok) {
-          throw new Error(`Erro ao buscar extras: ${resExtras.status} ${resExtras.statusText}`);
-        }
-        
-        const dataExtras = await resExtras.json();
-        const extrasMap = new Map(dataExtras.map((extra) => [extra.contest_result_id, extra]));
+  try {
+    const headers = getAuthHeaders();
+    const skip = (pagina - 1) * ITENS_POR_PAGINA;
+    const limit = ITENS_POR_PAGINA;
 
-        const resultadosCompletos = dataResultados.map((item) => ({
-          ...item,
-          situacao: extrasMap.get(item.id)?.situacao || "Aguardando Convocação",
-          vai_assumir: extrasMap.get(item.id)?.vai_assumir || "",
-          contatos: extrasMap.get(item.id)?.contatos || null,
-        }));
+    // Monta query params com category
+    const params = new URLSearchParams({
+      skip: String(skip),
+      limit: String(limit),
+      category: filtroTipo || ""
+    });
 
-        setListaResultados(resultadosCompletos.filter((r) => r.category === filtroTipo));
-      } catch (err) {
-        console.error("Erro ao buscar resultados:", err);
-        setErro(`Erro ao carregar a lista: ${err.message}`);
-      } finally {
-        setCarregando(false);
-      }
-    },
-    [API_URL, idListaSelecionada, filtroTipo]
-  );
+    const resResultados = await fetch(
+      `${API_URL}/api/contest-results/${idListaSelecionada}?${params.toString()}`,
+      { headers }
+    );
+
+    if (!resResultados.ok) {
+      throw new Error(`Erro ao buscar resultados: ${resResultados.status} ${resResultados.statusText}`);
+    }
+
+    const dataResultados = await resResultados.json();
+
+    // Buscar extras (mesma lógica sua)
+    const resExtras = await fetch(
+      `${API_URL}/api/contest-results-extra/by-contest/${idListaSelecionada}`,
+      { headers }
+    );
+    const dataExtras = await resExtras.json();
+    const extrasMap = new Map(dataExtras.map((extra) => [extra.contest_result_id, extra]));
+
+    const resultadosCompletos = dataResultados.map((item) => ({
+      ...item,
+      situacao: extrasMap.get(item.id)?.situacao || "Aguardando Convocação",
+      vai_assumir: extrasMap.get(item.id)?.vai_assumir || "",
+      contatos: extrasMap.get(item.id)?.contatos || null,
+    }));
+
+    // NÃO filtrar por categoria aqui — backend já retornou apenas a categoria pedida
+    setListaResultados(resultadosCompletos);
+
+    // Buscar total da categoria (para calcular totalPaginas)
+    const resCount = await fetch(`${API_URL}/api/contest-results-count/${idListaSelecionada}?category=${encodeURIComponent(filtroTipo)}`, { headers });
+    if (resCount.ok) {
+      const { total } = await resCount.json();
+      setTotalResultados(total);
+    } else {
+      setTotalResultados(resultadosCompletos.length); // fallback
+    }
+
+  } catch (err) {
+    console.error("Erro ao buscar resultados:", err);
+    setErro(`Erro ao carregar a lista: ${err.message}`);
+  } finally {
+    setCarregando(false);
+  }
+}, [API_URL, idListaSelecionada, filtroTipo]);
+
+useEffect(() => {
+  if (!idListaSelecionada) return;
+  setPaginaAtual(1);
+  buscarResultados(1);
+}, [filtroTipo, idListaSelecionada, buscarResultados]);
 
   useEffect(() => {
     buscarResultados();
   }, [buscarResultados]);
 
-  // --- Lógica de Paginação ---
-  const resultadosPaginados = useMemo(() => {
-    const inicio = (paginaAtual - 1) * ITENS_POR_PAGINA;
-    const fim = inicio + ITENS_POR_PAGINA;
-    return listaResultados.slice(inicio, fim);
-  }, [listaResultados, paginaAtual]);
+const resultadosPaginados = useMemo(() => {
+  const inicio = (paginaAtual - 1) * ITENS_POR_PAGINA;
+  const fim = inicio + ITENS_POR_PAGINA;
+  return listaResultados.slice(inicio, fim);
+}, [listaResultados, paginaAtual]);
 
-  const totalPaginas = Math.ceil(listaResultados.length / ITENS_POR_PAGINA);
+const totalPaginas = Math.ceil(totalResultados / ITENS_POR_PAGINA);
 
   // ✅ CORREÇÃO: Função salvarDadosExtras com melhor tratamento de erro
   const salvarDadosExtras = async (resultId, campo, valor) => {
@@ -517,9 +534,9 @@ const getAuthHeaders = () => {
     let cancelado = false;
 
     async function carregarStatus() {
-      if (!resultadosPaginados.length || !idListaSelecionada) return;
+      if (!listaResultados.length || !idListaSelecionada) return;
 
-      const nomes = resultadosPaginados.map((r) => r.name);
+      const nomes = listaResultados.map((r) => r.name);
       if (nomes.length === 0) return;
 
       try {
@@ -545,7 +562,7 @@ const getAuthHeaders = () => {
     }
 
     return () => { cancelado = true; };
-  }, [API_URL, resultadosPaginados, idListaSelecionada]);
+  }, [API_URL, listaResultados, idListaSelecionada]);
 
   // ✅ CORREÇÃO: handleVerOutrasListas com autenticação
   const handleVerOutrasListas = async (nome) => {
@@ -662,18 +679,15 @@ const getAuthHeaders = () => {
 
         {listaResultados.length > 0 && (
           <>
-            <TabelaResultados
-              resultados={resultadosPaginados}
-              onSalvarDadosExtras={salvarDadosExtras}
-              onAbrirContatos={handleOpenContatosModal}
-              onVerOutrasListas={handleVerOutrasListas}
-              outrasStatusMap={outrasStatusMap}
-            />
+            <TabelaResultados resultados={listaResultados} onSalvarDadosExtras={() => {}} onAbrirContatos={() => {}} onVerOutrasListas={() => {}} outrasStatusMap={outrasStatusMap} />
             <Paginacao
-              paginaAtual={paginaAtual}
-              totalPaginas={totalPaginas}
-              onPageChange={setPaginaAtual}
-            />
+  paginaAtual={paginaAtual}
+  totalPaginas={totalPaginas}
+  onPageChange={(novaPagina) => {
+    setPaginaAtual(novaPagina);
+    buscarResultados(novaPagina);
+  }}
+/>
           </>
         )}
 
