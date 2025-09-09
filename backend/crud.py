@@ -266,12 +266,15 @@ def create_or_update_extra(db: Session, extra_data: Dict):
     if contest_result_id is None:
         raise ValueError("contest_result_id é obrigatório")
 
+    # 🔎 Verifica se esse contest_result existe na tabela principal
+    exists = db.query(models.ContestResult).filter_by(id=contest_result_id).first()
+    if not exists:
+        raise HTTPException(status_code=400, detail=f"contest_result_id {contest_result_id} não existe")
+
     # Remove contest_result_id para não conflitar no setattr
     data_to_update = {k: v for k, v in extra_data.items() if k != "contest_result_id"}
 
-    # Verifica se já existe registro extra
     db_obj = db.query(models.ContestResultExtra).filter_by(contest_result_id=contest_result_id).first()
-
     if db_obj:
         for key, value in data_to_update.items():
             setattr(db_obj, key, value)
