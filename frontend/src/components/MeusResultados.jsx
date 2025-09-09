@@ -438,7 +438,7 @@ const getAuthHeaders = () => {
     carregarConcursos();
   }, [API_URL]);
 
-  // ✅ CORREÇÃO: Função para buscar resultados
+  // ✅ CORREÇÃO: Função para buscar resultados com tratamento de erro 404
   const buscarResultados = async (pagina = 1) => {
     if (!idListaSelecionada) return;
 
@@ -459,7 +459,7 @@ const getAuthHeaders = () => {
 
       const resultadosCompletos = await res.json();
 
-      // Buscar dados extras para cada resultado
+      // ✅ CORREÇÃO: Buscar dados extras para cada resultado com tratamento de erro 404
       const resultadosComExtras = await Promise.all(
         resultadosCompletos.map(async (resultado) => {
           try {
@@ -472,16 +472,28 @@ const getAuthHeaders = () => {
                 vai_assumir: extra.vai_assumir || "",
                 contatos: extra.contatos || "",
               };
+            } else if (resExtra.status === 404) {
+              // ✅ CORREÇÃO: Se não existir dados extras (404), retorna valores padrão
+              console.log(`Dados extras não encontrados para resultado ${resultado.id} - usando valores padrão`);
+              return {
+                ...resultado,
+                situacao: "Aguardando Convocação",
+                vai_assumir: "",
+                contatos: "",
+              };
+            } else {
+              throw new Error(`Erro ${resExtra.status} ao buscar extras`);
             }
           } catch (err) {
             console.error(`Erro ao buscar extras para resultado ${resultado.id}:`, err);
+            // ✅ CORREÇÃO: Em caso de erro, retorna valores padrão
+            return {
+              ...resultado,
+              situacao: "Aguardando Convocação",
+              vai_assumir: "",
+              contatos: "",
+            };
           }
-          return {
-            ...resultado,
-            situacao: "Aguardando Convocação",
-            vai_assumir: "",
-            contatos: "",
-          };
         })
       );
 
@@ -787,6 +799,7 @@ const getAuthHeaders = () => {
     </div>
   );
 }
+
 
 
 
