@@ -174,7 +174,7 @@ const TabelaResultados = ({
                           </svg>
                         )}
                         {r.situacao === "Exonerado" && (
-                          <svg xmlns="http://www.w3.svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                           </svg>
                         )}
@@ -252,16 +252,16 @@ const TabelaResultados = ({
 </td>
               <td className="px-5 py-4">
                 <button
-  onClick={() => handleVerOutrasListas(r.name)}
-  className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition ${
-    outrasStatusMap?.[r.name]
-      ? "bg-green-200 hover:bg-green-300 text-green-900"
-      : "bg-gray-200 hover:bg-gray-300 text-gray-800"
-  }`}
->
-  <ListBulletIcon className="h-4 w-4" />
-  Ver
-</button>
+                  onClick={() => onVerOutrasListas(r.name)}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition ${
+                    outrasStatusMap?.[r.name]
+                      ? "bg-green-200 hover:bg-green-300 text-green-900"
+                      : "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                  }`}
+                >
+                  <ListBulletIcon className="h-4 w-4" />
+                  Ver
+                </button>
               </td>
               <td className="px-5 py-4">
                 <button
@@ -316,167 +316,55 @@ const getAuthHeaders = () => {
   const token = localStorage.getItem("access_token"); // ✅ CORRETO
   return token ? {
     "Content-Type": "application/json",
-    "Authorization": `Bearer ${token}`
+    "Authorization": `Bearer ${token}`,
   } : {
-    "Content-Type": "application/json"
+    "Content-Type": "application/json",
   };
 };
 
-  // ✅ CORREÇÃO: useEffect para buscar concursos com autenticação
-  useEffect(() => {
-    const buscarConcursos = async () => {
-      try {
-        const response = await fetch(`${API_URL}/api/contests/`, {
-          headers: getAuthHeaders()
-        });
-        
-        if (!response.ok) {
-          throw new Error(`Erro ${response.status}: ${response.statusText}`);
-        }
-        
-        const data = await response.json();
-        setContests(data);
-        setTodosConcursos(data);
-      } catch (error) {
-        console.error("Erro ao buscar concursos:", error);
-        setErro(`Erro ao carregar concursos: ${error.message}`);
-      }
-    };
-
-    buscarConcursos();
-  }, [API_URL]);
-
-  const handleSearchByName = () => {
-    if (!searchName.trim()) return;
-    navigate(`/resultados/${encodeURIComponent(searchName)}`);
-  };
-
-  // ✅ CORREÇÃO: Função buscarResultados com autenticação adequada
-  const buscarResultados = useCallback(async (pagina = 1) => {
-  if (!idListaSelecionada) return;
-  setCarregando(true);
-  setErro("");
-
-  try {
-    const headers = getAuthHeaders();
-    const skip = (pagina - 1) * ITENS_POR_PAGINA;
-    const limit = ITENS_POR_PAGINA;
-
-    // Monta query params com category
-    const params = new URLSearchParams({
-      skip: String(skip),
-      limit: String(limit),
-      category: filtroTipo || ""
-    });
-
-    const resResultados = await fetch(
-      `${API_URL}/api/contest-results/${idListaSelecionada}?${params.toString()}`,
-      { headers }
-    );
-
-    if (!resResultados.ok) {
-      throw new Error(`Erro ao buscar resultados: ${resResultados.status} ${resResultados.statusText}`);
-    }
-
-    const dataResultados = await resResultados.json();
-
-    // Buscar extras (mesma lógica sua)
-    const resExtras = await fetch(
-      `${API_URL}/api/contest-results-extra/by-contest/${idListaSelecionada}`,
-      { headers }
-    );
-    const dataExtras = await resExtras.json();
-    const extrasMap = new Map(dataExtras.map((extra) => [extra.contest_result_id, extra]));
-
-    const resultadosCompletos = dataResultados.map((item) => ({
-      ...item,
-      situacao: extrasMap.get(item.id)?.situacao || "Aguardando Convocação",
-      vai_assumir: extrasMap.get(item.id)?.vai_assumir || "",
-      contatos: extrasMap.get(item.id)?.contatos || null,
-    }));
-
-    // NÃO filtrar por categoria aqui — backend já retornou apenas a categoria pedida
-    setListaResultados(resultadosCompletos);
-
-    // Buscar total da categoria (para calcular totalPaginas)
-    const resCount = await fetch(`${API_URL}/api/contest-results-count/${idListaSelecionada}?category=${encodeURIComponent(filtroTipo)}`, { headers });
-    if (resCount.ok) {
-      const { total } = await resCount.json();
-      setTotalResultados(total);
-    } else {
-      setTotalResultados(resultadosCompletos.length); // fallback
-    }
-
-  } catch (err) {
-    console.error("Erro ao buscar resultados:", err);
-    setErro(`Erro ao carregar a lista: ${err.message}`);
-  } finally {
-    setCarregando(false);
-  }
-}, [API_URL, idListaSelecionada, filtroTipo]);
-
-useEffect(() => {
-  if (!idListaSelecionada) return;
-  setPaginaAtual(1);
-  buscarResultados(1);
-}, [filtroTipo, idListaSelecionada, buscarResultados]);
-
-  useEffect(() => {
-    buscarResultados();
-  }, [buscarResultados]);
-
-const resultadosPaginados = useMemo(() => {
-  const inicio = (paginaAtual - 1) * ITENS_POR_PAGINA;
-  const fim = inicio + ITENS_POR_PAGINA;
-  return listaResultados.slice(inicio, fim);
-}, [listaResultados, paginaAtual]);
-
-const totalPaginas = Math.ceil(totalResultados / ITENS_POR_PAGINA);
-
-  // ✅ CORREÇÃO: Função salvarDadosExtras com melhor tratamento de erro
-  const salvarDadosExtras = async (resultId, campo, valor) => {
-    setListaResultados((prev) =>
-      prev.map((item) => (item.id === resultId ? { ...item, [campo]: valor } : item))
-    );
-    
+  // ✅ CORREÇÃO: Função para salvar dados extras
+  const handleSalvarDadosExtras = async (contestResultId, campo, valor) => {
     try {
       const headers = getAuthHeaders();
       const res = await fetch(`${API_URL}/api/contest-results-extra/`, {
         method: "POST",
         headers,
-        body: JSON.stringify({ contest_result_id: resultId, [campo]: valor }),
+        body: JSON.stringify({
+          contest_result_id: contestResultId,
+          [campo]: valor,
+        }),
       });
-      
-      if (!res.ok) {
-        throw new Error(`Erro ${res.status}: ${res.statusText}`);
-      }
+
+      if (!res.ok) throw new Error("Falha ao salvar dados extras");
+
+      // Atualizar o estado local
+      setListaResultados((prev) =>
+        prev.map((r) =>
+          r.id === contestResultId ? { ...r, [campo]: valor } : r
+        )
+      );
     } catch (err) {
       console.error("Erro ao salvar dados extras:", err);
-      alert("Erro ao salvar a alteração. Os dados serão recarregados.");
-      buscarResultados();
+      alert("Erro ao salvar. Tente novamente.");
     }
   };
 
-  // --- Funções de Interação ---
-  const handleOpenContatosModal = (result) => {
-    setSelectedResultParaModal(result);
+  // ✅ CORREÇÃO: Função para abrir modal de contatos
+  const handleAbrirContatos = (resultado) => {
+    setSelectedResultParaModal(resultado);
     setIsContatosModalOpen(true);
   };
 
+  // ✅ CORREÇÃO: Função para fechar modal de contatos
   const handleCloseContatosModal = () => {
     setIsContatosModalOpen(false);
     setSelectedResultParaModal(null);
   };
 
-  const handleSaveContatos = async (contatosData) => {
+  // ✅ CORREÇÃO: Função para salvar contatos
+  const handleSaveContatos = async (contatos) => {
     if (!selectedResultParaModal) return;
-    setListaResultados((prev) =>
-      prev.map((item) =>
-        item.id === selectedResultParaModal.id ? { ...item, contatos: contatosData } : item
-      )
-    );
-    handleCloseContatosModal();
-    
+
     try {
       const headers = getAuthHeaders();
       const res = await fetch(`${API_URL}/api/contest-results-extra/`, {
@@ -484,20 +372,151 @@ const totalPaginas = Math.ceil(totalResultados / ITENS_POR_PAGINA);
         headers,
         body: JSON.stringify({
           contest_result_id: selectedResultParaModal.id,
-          contatos: contatosData,
+          contatos: contatos,
         }),
       });
-      
-      if (!res.ok) {
-        throw new Error(`Erro ${res.status}: ${res.statusText}`);
-      }
+
+      if (!res.ok) throw new Error("Falha ao salvar contatos");
+
+      // Atualizar o estado local
+      setListaResultados((prev) =>
+        prev.map((r) =>
+          r.id === selectedResultParaModal.id ? { ...r, contatos } : r
+        )
+      );
+
+      handleCloseContatosModal();
     } catch (err) {
       console.error("Erro ao salvar contatos:", err);
       alert("Erro ao salvar contatos. Tente novamente.");
     }
   };
 
-  // ✅ CORREÇÃO: Agrupamento de concursos com verificação de dados
+  // ✅ CORREÇÃO: handleVerOutrasListas com autenticação
+  const handleVerOutrasListas = async (nome) => {
+    setIsLoadingOutrasListas(true);
+    setOutrasListasError("");
+    setOutrasListasData([]);
+    setIsOutrasListasOpen(true);
+    
+    try {
+      const encodedName = encodeURIComponent(nome);
+      const headers = getAuthHeaders();
+      const res = await fetch(`${API_URL}/api/results-by-name/?name=${encodedName}`, {
+        headers
+      });
+      
+      if (!res.ok) throw new Error("Falha ao buscar dados.");
+      
+      const data = await res.json();
+      setOutrasListasData(data);
+    } catch (err) {
+      console.error("Erro ao buscar outras listas:", err);
+      setOutrasListasError(err.message);
+    } finally {
+      setIsLoadingOutrasListas(false);
+    }
+  };
+
+  // ✅ CORREÇÃO: useEffect para carregar concursos
+  useEffect(() => {
+    async function carregarConcursos() {
+      setCarregando(true);
+      try {
+        const headers = getAuthHeaders();
+        const res = await fetch(`${API_URL}/api/contests/`, { headers });
+        if (!res.ok) throw new Error("Falha ao carregar concursos");
+        const data = await res.json();
+        setTodosConcursos(data);
+      } catch (err) {
+        console.error("Erro ao carregar concursos:", err);
+        setErro("Erro ao carregar concursos. Tente novamente.");
+      } finally {
+        setCarregando(false);
+      }
+    }
+    carregarConcursos();
+  }, [API_URL]);
+
+  // ✅ CORREÇÃO: Função para buscar resultados
+  const buscarResultados = async (pagina = 1) => {
+    if (!idListaSelecionada) return;
+
+    setCarregando(true);
+    setErro("");
+
+    try {
+      const headers = getAuthHeaders();
+      const skip = (pagina - 1) * ITENS_POR_PAGINA;
+      
+      // Buscar resultados paginados
+      const res = await fetch(
+        `${API_URL}/api/contest-results/${idListaSelecionada}?skip=${skip}&limit=${ITENS_POR_PAGINA}&category=${encodeURIComponent(filtroTipo)}`,
+        { headers }
+      );
+
+      if (!res.ok) throw new Error("Falha ao carregar resultados");
+
+      const resultadosCompletos = await res.json();
+
+      // Buscar dados extras para cada resultado
+      const resultadosComExtras = await Promise.all(
+        resultadosCompletos.map(async (resultado) => {
+          try {
+            const resExtra = await fetch(`${API_URL}/api/contest-results-extra/${resultado.id}`, { headers });
+            if (resExtra.ok) {
+              const extra = await resExtra.json();
+              return {
+                ...resultado,
+                situacao: extra.situacao || "Aguardando Convocação",
+                vai_assumir: extra.vai_assumir || "",
+                contatos: extra.contatos || "",
+              };
+            }
+          } catch (err) {
+            console.error(`Erro ao buscar extras para resultado ${resultado.id}:`, err);
+          }
+          return {
+            ...resultado,
+            situacao: "Aguardando Convocação",
+            vai_assumir: "",
+            contatos: "",
+          };
+        })
+      );
+
+      setListaResultados(resultadosComExtras);
+
+      // Buscar total da categoria (para calcular totalPaginas)
+      const resCount = await fetch(`${API_URL}/api/contest-results-count/${idListaSelecionada}?category=${encodeURIComponent(filtroTipo)}`, { headers });
+      if (resCount.ok) {
+        const { total } = await resCount.json();
+        setTotalResultados(total);
+      } else {
+        setTotalResultados(resultadosCompletos.length); // fallback
+      }
+
+    } catch (err) {
+      console.error("Erro ao buscar resultados:", err);
+      setErro("Erro ao carregar resultados. Tente novamente.");
+      setListaResultados([]);
+    } finally {
+      setCarregando(false);
+    }
+  };
+
+  // ✅ CORREÇÃO: useEffect para buscar resultados quando filtros mudam
+  useEffect(() => {
+    if (idListaSelecionada && filtroTipo) {
+      setPaginaAtual(1);
+      buscarResultados(1);
+    }
+  }, [idListaSelecionada, filtroTipo]);
+
+  // ✅ CORREÇÃO: Cálculo de páginas
+  const totalPaginas = Math.ceil(totalResultados / ITENS_POR_PAGINA);
+
+  // ✅ CORREÇÃO: Agrupamento de concursos
   const concursosAgrupados = useMemo(() => {
     if (!todosConcursos || todosConcursos.length === 0) return new Map();
     
@@ -563,32 +582,6 @@ const totalPaginas = Math.ceil(totalResultados / ITENS_POR_PAGINA);
 
     return () => { cancelado = true; };
   }, [API_URL, listaResultados, idListaSelecionada]);
-
-  // ✅ CORREÇÃO: handleVerOutrasListas com autenticação
-  const handleVerOutrasListas = async (nome) => {
-    setIsLoadingOutrasListas(true);
-    setOutrasListasError("");
-    setOutrasListasData([]);
-    setIsOutrasListasOpen(true);
-    
-    try {
-      const encodedName = encodeURIComponent(nome);
-      const headers = getAuthHeaders();
-      const res = await fetch(`${API_URL}/api/results-by-name/?name=${encodedName}`, {
-        headers
-      });
-      
-      if (!res.ok) throw new Error("Falha ao buscar dados.");
-      
-      const data = await res.json();
-      setOutrasListasData(data);
-    } catch (err) {
-      console.error("Erro ao buscar outras listas:", err);
-      setOutrasListasError(err.message);
-    } finally {
-      setIsLoadingOutrasListas(false);
-    }
-  };
 
   // --- Renderização ---
   if (carregando && todosConcursos.length === 0) {
@@ -679,15 +672,21 @@ const totalPaginas = Math.ceil(totalResultados / ITENS_POR_PAGINA);
 
         {listaResultados.length > 0 && (
           <>
-            <TabelaResultados resultados={listaResultados} onSalvarDadosExtras={() => {}} onAbrirContatos={() => {}} onVerOutrasListas={() => {}} outrasStatusMap={outrasStatusMap} />
+            <TabelaResultados 
+              resultados={listaResultados} 
+              onSalvarDadosExtras={handleSalvarDadosExtras} 
+              onAbrirContatos={handleAbrirContatos} 
+              onVerOutrasListas={handleVerOutrasListas} 
+              outrasStatusMap={outrasStatusMap} 
+            />
             <Paginacao
-  paginaAtual={paginaAtual}
-  totalPaginas={totalPaginas}
-  onPageChange={(novaPagina) => {
-    setPaginaAtual(novaPagina);
-    buscarResultados(novaPagina);
-  }}
-/>
+              paginaAtual={paginaAtual}
+              totalPaginas={totalPaginas}
+              onPageChange={(novaPagina) => {
+                setPaginaAtual(novaPagina);
+                buscarResultados(novaPagina);
+              }}
+            />
           </>
         )}
 
@@ -788,6 +787,7 @@ const totalPaginas = Math.ceil(totalResultados / ITENS_POR_PAGINA);
     </div>
   );
 }
+
 
 
 
