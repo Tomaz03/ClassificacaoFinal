@@ -252,7 +252,7 @@ const TabelaResultados = ({
 </td>
               <td className="px-5 py-4">
                 <button
-  onClick={() => onVerOutrasListas(r.name)}
+  onClick={() => handleVerOutrasListas(r.name)}
   className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition ${
     outrasStatusMap?.[r.name]
       ? "bg-green-200 hover:bg-green-300 text-green-900"
