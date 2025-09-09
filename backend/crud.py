@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 import secrets
 from sqlalchemy import func
 from fastapi import HTTPException, status
+from collections import Counter, defaultdict
 import unicodedata
 import logging
 logger = logging.getLogger(__name__)
@@ -365,16 +366,20 @@ def get_results_by_name_and_category(db: Session, name: str, category: str):
 
     return resultados_filtrados
 
+from sqlalchemy.orm import joinedload
+import unicodedata
+
 def compare_contests(db: Session, contest_id_1: int, contest_id_2: int):
     """
-    Compara dois concursos diretamente no SQL,
-    já incluindo extras (situação, etc).
-    Retorna formato pronto para o frontend.
+    Compara dois concursos e retorna candidatos em comum.
+    Garante nome canônico por candidato (o mais frequente entre ocorrências).
+    Retorna também 'norm' (chave normalizada) para ajudar debug.
     """
-
     from backend.models import ContestResult
+    from sqlalchemy.orm import joinedload
+    import unicodedata
 
-    # Carrega com join para trazer extras sem consultas adicionais
+    # carrega resultados com extras
     results_1 = db.query(ContestResult).options(joinedload(ContestResult.extra)).filter(
         ContestResult.contest_id == contest_id_1
     ).all()
@@ -383,7 +388,6 @@ def compare_contests(db: Session, contest_id_1: int, contest_id_2: int):
         ContestResult.contest_id == contest_id_2
     ).all()
 
-    # Mapear nome normalizado -> lista de dados
     def normalizar(nome: str) -> str:
         if not nome:
             return ""
@@ -395,32 +399,62 @@ def compare_contests(db: Session, contest_id_1: int, contest_id_2: int):
             .strip()
         )
 
-    map_1, map_2 = {}, {}
-    for r in results_1:
-        map_1.setdefault(normalizar(r.name), []).append({
-            "category": r.category,
-            "position": r.position,
-            "situacao": r.extra.situacao if r.extra else "Aguardando"
-        })
-    for r in results_2:
-        map_2.setdefault(normalizar(r.name), []).append({
-            "category": r.category,
-            "position": r.position,
-            "situacao": r.extra.situacao if r.extra else "Aguardando"
-        })
+    map_1 = defaultdict(list)
+    map_2 = defaultdict(list)
+    name_counters = defaultdict(Counter)  # para escolher nome canônico
 
-    # Interseção
+    # popula mapas e contadores
+    for r in results_1:
+        nome_norm = normalizar(r.name)
+        entry = {
+            "name": r.name,
+            "category": r.category,
+            "position": r.position,
+            "contest_result_id": getattr(r, "id", None),
+            "situacao": (r.extra.situacao if r.extra else None)
+        }
+        map_1[nome_norm].append(entry)
+        name_counters[nome_norm][r.name] += 1
+
+    for r in results_2:
+        nome_norm = normalizar(r.name)
+        entry = {
+            "name": r.name,
+            "category": r.category,
+            "position": r.position,
+            "contest_result_id": getattr(r, "id", None),
+            "situacao": (r.extra.situacao if r.extra else None)
+        }
+        map_2[nome_norm].append(entry)
+        name_counters[nome_norm][r.name] += 1
+
+    # interseção de chaves normalizadas
     common_names = set(map_1.keys()) & set(map_2.keys())
 
     response = []
-    for name_norm in sorted(common_names):
-        # Pega o nome "original" de um dos concursos
-        nome_exibicao = (results_1[0].name if results_1 else name_norm)
+    for nome_norm in sorted(common_names):
+        # escolhe o nome canônico (o mais comum entre ocorrências)
+        counter = name_counters[nome_norm]
+        if counter:
+            canonical_name = counter.most_common(1)[0][0]
+        else:
+            # fallback: primeiro encontrado em map_1 ou map_2
+            canonical_name = (map_1[nome_norm][0]["name"] if map_1[nome_norm] else
+                              (map_2[nome_norm][0]["name"] if map_2[nome_norm] else ""))
+
         response.append({
-            "name": nome_exibicao,
-            "contest_1": map_1[name_norm],
-            "contest_2": map_2[name_norm],
+            "name": canonical_name,
+            "norm": nome_norm,           # útil para debug no frontend
+            "contest_1": map_1[nome_norm],
+            "contest_2": map_2[nome_norm],
         })
+
+    # log para inspeção (apenas amostra)
+    try:
+        logger.info("compare_contests: contest1=%s contest2=%s matches=%d sample=%s",
+                    contest_id_1, contest_id_2, len(response), response[:10])
+    except Exception:
+        pass
 
     return response
 
