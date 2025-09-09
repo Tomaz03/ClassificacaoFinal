@@ -411,7 +411,7 @@ def compare_contests(db: Session, contest_id_1: int, contest_id_2: int):
             "category": r.category,
             "position": r.position,
             "contest_result_id": getattr(r, "id", None),
-            "situacao": (r.extra.situacao if r.extra else None)
+            "situacao": (r.extra.situacao if (r.extra and r.extra.situacao) else "Aguardando Convocação")
         }
         map_1[nome_norm].append(entry)
         name_counters[nome_norm][r.name] += 1
