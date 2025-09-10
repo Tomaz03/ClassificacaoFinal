@@ -21,14 +21,16 @@ export default function ContatosModal({ isOpen, onClose, onSave, initialData }) 
   }, [initialData, isOpen]);
 
   const handleSave = async () => {
-    setIsSaving(true);
-    const contatosData = {
-      contatos: { email, telefone, whatsapp },
-    };
-    await onSave(contatosData);
-    setIsSaving(false);
-    onClose(); // Fecha o modal após salvar
+  setIsSaving(true);
+  const contatosData = {
+    email,
+    telefone,
+    whatsapp,
   };
+  await onSave(contatosData); // já manda direto
+  setIsSaving(false);
+  onClose(); 
+};
 
   if (!isOpen) {
     return null;
