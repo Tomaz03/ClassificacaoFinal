@@ -7,18 +7,17 @@ export default function ContatosModal({ isOpen, onClose, onSave, initialData }) 
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    // ✅ VERIFICAÇÃO DE SEGURANÇA: Garante que initialData não é nulo ou undefined
-    if (initialData) {
-      setEmail(initialData.email || '');
-      setTelefone(initialData.telefone || '');
-      setWhatsapp(initialData.whatsapp || '');
-    } else {
-      // Se não houver dados iniciais, garante que os campos estejam vazios
-      setEmail('');
-      setTelefone('');
-      setWhatsapp('');
-    }
-  }, [initialData, isOpen]);
+  if (initialData) {
+    const data = initialData.contatos ? initialData.contatos : initialData;
+    setEmail(data.email || '');
+    setTelefone(data.telefone || '');
+    setWhatsapp(data.whatsapp || '');
+  } else {
+    setEmail('');
+    setTelefone('');
+    setWhatsapp('');
+  }
+}, [initialData, isOpen]);
 
   const handleSave = async () => {
   setIsSaving(true);
