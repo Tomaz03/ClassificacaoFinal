@@ -54,7 +54,15 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('access_token', token);
       localStorage.setItem('user_data', JSON.stringify(userData));
       setUser(userData);
-      return { success: true };
+
+      // 🔹 Redirecionamento por role
+      if (userData.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/meus-resultados");
+      }
+
+      return { success: true, user: userData };
     } catch (error) {
       console.error('Erro ao fazer login com token:', error);
       return { success: false, error: error.message };
@@ -94,7 +102,14 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('user_data', JSON.stringify(userData));
       setUser(userData);
       
-      return { success: true };
+      // 🔹 Redirecionamento por role
+      if (userData.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/meus-resultados");
+      }
+
+      return { success: true, user: userData };
     } catch (error) {
       console.error('Erro no login:', error);
       return { success: false, error: 'Ocorreu um erro inesperado.' };
@@ -164,9 +179,13 @@ export const AuthProvider = ({ children }) => {
 
           cleanup();
           if (loginResult.success) {
-            navigate('/meus-resultados');
-            resolve(loginResult);
-          } else {
+  if (loginResult.user?.role === "admin") {
+    navigate("/admin");
+  } else {
+    navigate("/meus-resultados");
+  }
+  resolve(loginResult);
+} else {
             console.log("Falha no loginWithToken:", loginResult.error);
             reject(new Error('Falha ao processar o token do Google.'));
           }
