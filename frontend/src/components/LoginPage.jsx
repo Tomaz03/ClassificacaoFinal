@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Button } from '@/components/ui/Button';
@@ -6,9 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { useNavigate } from 'react-router-dom';
 
 export default function LoginPage() {
   const { user, login, handleGoogleLogin } = useAuth();
+  const [redirecting, setRedirecting] = useState(false);
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -17,10 +20,17 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Se o usuário já estiver logado, redireciona para MeusResultados
-  if (user) {
-    return <Navigate to="/meus-resultados" replace />;
-  }
+  // Se o usuário já estiver logado, redireciona conforme o role
+useEffect(() => {
+    if (user && !redirecting) {
+      setRedirecting(true); // evita múltiplos redirects
+      if ((user.role || "").toLowerCase() === "admin") {
+        navigate("/admin", { replace: true });
+      } else {
+        navigate("/meus-resultados", { replace: true });
+      }
+    }
+  }, [user, navigate, redirecting]);
 
   const handleChange = (e) => {
     setFormData({
