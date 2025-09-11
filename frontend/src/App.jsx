@@ -10,11 +10,12 @@ import CompararConcursos from './components/CompararConcursos';
 import ResultadosPorNome from "./components/ResultadosPorNome";
 import ConfirmarEmailPage from './components/ConfirmarEmailPage.jsx';
 import Home from './components/Home.jsx'; // O componente da sua página inicial pública
+import AdminDashboard from './components/admin/AdminDashboard';
 
 // Componente para rotas protegidas (sem alterações)
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
-  
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -22,9 +23,15 @@ function ProtectedRoute({ children }) {
       </div>
     );
   }
-  
-  return user ? children : <Navigate to="/login" replace />;
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // 🔹 Permite que children seja função ({ user }) => (...) ou componente normal
+  return typeof children === "function" ? children({ user }) : children;
 }
+
 
 function App() {
   return (
@@ -37,6 +44,16 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/cadastro" element={<CadastroPage />} />
           <Route path="/confirmar-email" element={<ConfirmarEmailPage />} />
+          <Route
+  path="/admin"
+  element={
+    <ProtectedRoute>
+      {({ user }) =>
+        user.role === "admin" ? <AdminDashboard /> : <Navigate to="/meus-resultados" />
+      }
+    </ProtectedRoute>
+  }
+/>
 
           {/* --- ROTAS PROTEGIDAS --- */}
           {/* Agrupamos as rotas que exigem login aqui. */}
