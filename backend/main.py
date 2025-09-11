@@ -373,7 +373,7 @@ def create_contest(contest: schemas.ContestCreate, db: Session = Depends(get_db)
     return crud.create_contest(db, contest)
 
 @app.get("/api/contests/", response_model=List[schemas.Contest])
-def list_contests(db: Session = Depends(get_db)):
+def list_contests(db: Session = Depends(get_db), current_user: User = Depends(get_current_admin_user)):
     return crud.get_contests(db)
 
 # --- Endpoints Resultados ---
@@ -481,4 +481,48 @@ def compare_contests_api(contest_id_1: int, contest_id_2: int, db: Session = Dep
 def results_by_names_batch(payload: schemas.NamesBatchRequest, db: Session = Depends(get_db)):
     return crud.get_results_by_names_batch(db, payload.names)
 
+# Adicione este novo endpoint DELETE
+# --- Endpoint DELETE resultados por categoria ---
+@app.delete("/api/contest-results/{contest_id}/{category}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_contest_results_by_category(
+    contest_id: int, 
+    category: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin_user)  # ✅ corrigido
+):
+    """
+    Deleta os resultados de uma categoria específica de um concurso.
+    """
+    crud.delete_results_by_category(db, contest_id=contest_id, category=category)
+    return
 
+
+# --- Endpoint UPDATE concurso ---
+@app.put("/api/contests/{contest_id}", response_model=schemas.Contest)
+def update_contest_endpoint(
+    contest_id: int,
+    contest: schemas.ContestCreate, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin_user)  # ✅ corrigido
+):
+    """
+    Atualiza um concurso existente.
+    """
+    updated_contest = crud.update_contest(db, contest_id=contest_id, contest_update=contest)
+    
+    if not updated_contest:
+        raise HTTPException(status_code=404, detail="Concurso não encontrado")
+        
+    return updated_contest
+
+
+@app.delete("/api/contests/{contest_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_contest_endpoint(
+    contest_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin_user)
+):
+    success = crud.delete_contest(db, contest_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Concurso não encontrado")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
