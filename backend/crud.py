@@ -498,3 +498,44 @@ def get_results_by_names_batch(db: Session, names: List[str]) -> Dict[str, bool]
                         resultados[original] = True
 
     return resultados
+
+def delete_results_by_category(db: Session, contest_id: int, category: str):
+    """
+    Deleta os resultados de uma categoria específica de um concurso.
+    """
+    num_deleted = db.query(models.ContestResult).filter(
+        models.ContestResult.contest_id == contest_id,
+        models.ContestResult.category == category
+    ).delete(synchronize_session=False)
+    
+    db.commit()
+    return num_deleted
+
+def update_contest(db: Session, contest_id: int, contest_update: schemas.ContestCreate):
+    """
+    Atualiza os dados de um concurso existente.
+    """
+    # Busca o concurso no banco de dados pelo ID
+    db_contest = db.query(models.Contest).filter(models.Contest.id == contest_id).first()
+
+    if db_contest:
+        # Pega os dados do schema de atualização
+        update_data = contest_update.model_dump(exclude_unset=True)
+        
+        # Itera sobre os dados e atualiza os atributos do objeto do banco de dados
+        for key, value in update_data.items():
+            setattr(db_contest, key, value)
+            
+        db.add(db_contest) # Adiciona o objeto modificado à sessão
+        db.commit()      # Salva as mudanças
+        db.refresh(db_contest) # Atualiza o objeto com os dados do banco
+    
+    return db_contest
+
+def delete_contest(db: Session, contest_id: int):
+    db_contest = db.query(models.Contest).filter(models.Contest.id == contest_id).first()
+    if db_contest:
+        db.delete(db_contest)
+        db.commit()
+        return True
+    return False
