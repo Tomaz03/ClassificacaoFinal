@@ -17,11 +17,10 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // A lógica de redirecionamento agora é tratada no useAuth.jsx após o login bem-sucedido
-  // Se o usuário já estiver logado, não faz nada aqui, o useAuth já o redirecionou ou o fará.
-  // if (user) {
-  //   return <Navigate to="/meus-resultados" replace />;
-  // }
+  // Se o usuário já estiver logado, redireciona para MeusResultados
+  if (user) {
+    return <Navigate to="/meus-resultados" replace />;
+  }
 
   const handleChange = (e) => {
     setFormData({
