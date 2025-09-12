@@ -368,30 +368,17 @@ async def check_email_status(email: str, db: Session = Depends(get_db)):
     }
 
 # --- Endpoints Concurso ---
-# ✅ CORREÇÃO: Adicionar autenticação de admin
 @app.post("/api/contests/", response_model=schemas.Contest)
-def create_contest(
-    contest: schemas.ContestCreate, 
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_admin_user)  # ✅ Exigir admin
-):
+def create_contest(contest: schemas.ContestCreate, db: Session = Depends(get_db)):
     return crud.create_contest(db, contest)
 
-# ✅ CORREÇÃO: Adicionar autenticação de admin
 @app.get("/api/contests/", response_model=List[schemas.Contest])
-def list_contests(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_admin_user)  # ✅ Exigir admin
-):
+def list_contests(db: Session = Depends(get_db)):
     return crud.get_contests(db)
 
 # --- Endpoints Resultados ---
 @app.post("/api/contest-results/", response_model=List[schemas.ContestResult])
-def create_results(
-    data: schemas.ContestResultCreate, 
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_admin_user)  # ✅ Exigir admin
-):
+def create_results(data: schemas.ContestResultCreate, db: Session = Depends(get_db)):
     return crud.create_contest_results(db, data)
 
 @app.get("/api/contest-results/{contest_id}", response_model=List[schemas.ContestResult])
@@ -401,25 +388,15 @@ def list_results(
     limit: int = 100,
     category: Optional[str] = Query(None),
     db: Session = Depends(get_db)
-    # ✅ Este endpoint pode ser público para consulta de resultados
 ):
     return crud.get_results_by_contest(db, contest_id, skip=skip, limit=limit, category=category)
 
 @app.get("/api/contest-results-count/{contest_id}")
-def get_results_count(
-    contest_id: int, 
-    category: Optional[str] = Query(None), 
-    db: Session = Depends(get_db)
-    # ✅ Este endpoint pode ser público para consulta de resultados
-):
+def get_results_count(contest_id: int, category: Optional[str] = Query(None), db: Session = Depends(get_db)):
     return {"total": crud.get_results_count(db, contest_id, category)}
 
 @app.get("/api/contest-results-extra/{contest_result_id}", response_model=ContestResultExtra)
-def get_contest_result_extra(
-    contest_result_id: int, 
-    db: Session = Depends(get_db)
-    # ✅ Este endpoint pode ser público para consulta de resultados
-):
+def get_contest_result_extra(contest_result_id: int, db: Session = Depends(get_db)):
     extra = crud.get_extra_by_result_id(db, contest_result_id)
     if not extra:
         raise HTTPException(status_code=404, detail="Extras não encontrados para este resultado")
@@ -429,7 +406,6 @@ def get_contest_result_extra(
 def create_or_update_contest_result_extra(
     extra_data: schemas.ContestResultExtraCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_admin_user)  # ✅ Exigir admin
 ):
     try:
         return crud.create_or_update_extra(db, extra_data.dict())
@@ -442,20 +418,16 @@ def create_or_update_contest_result_extra(
 
 
 @app.get("/api/contest-results-extra/by-contest/{contest_id}", response_model=List[ContestResultExtra])
-def get_extras_by_contest(
-    contest_id: int, 
-    db: Session = Depends(get_db)
-    # ✅ Este endpoint pode ser público para consulta de resultados
-):
+def get_extras_by_contest(contest_id: int, db: Session = Depends(get_db)):
     return crud.get_extras_by_contest(db, contest_id)
 
-# ✅ CORREÇÃO: Adicionar autenticação de admin
+# Adicione este novo endpoint DELETE
 @app.delete("/api/contest-results/{contest_id}/{category}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_contest_results_by_category(
     contest_id: int, 
     category: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_admin_user)  # ✅ Exigir admin
+    current_user: User = Depends(get_current_admin_user)  # ✅ usar User direto
 ):
     crud.delete_results_by_category(db, contest_id=contest_id, category=category)
     return
@@ -465,20 +437,18 @@ def delete_contest_results_by_category(
 def get_results_by_name(
     name: str = Query(..., min_length=3), 
     db: Session = Depends(get_db)
-    # ✅ Este endpoint pode ser público para consulta de resultados
 ):
     """
     Busca todos os resultados de um candidato pelo nome.
     """
     return crud.get_all_results_by_name(db, name=name)
 
-# ✅ CORREÇÃO: Adicionar autenticação de admin
 @app.put("/api/contests/{contest_id}", response_model=schemas.Contest)
 def update_contest_endpoint(
     contest_id: int,
     contest: schemas.ContestCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_admin_user)  # ✅ Exigir admin
+    current_user: User = Depends(get_current_admin_user)  # ✅ usar User direto
 ):
     updated_contest = crud.update_contest(db, contest_id=contest_id, contest_update=contest)
     if not updated_contest:
@@ -490,7 +460,6 @@ def get_results_by_criteria(
     name: str = Query(...),
     category: str = Query(...),
     db: Session = Depends(get_db)
-    # ✅ Este endpoint pode ser público para consulta de resultados
 ):
     """
     Busca resultados com base no nome exato do concurso e na categoria.
@@ -500,21 +469,16 @@ def get_results_by_criteria(
     # Vamos adaptar a busca para ser mais flexível no frontend.
     # Por enquanto, vamos manter a busca pelo ID que é mais precisa.
     # A lógica de troca de categoria será feita no frontend.
-    pass # Manter implementação existente
+    pass # Manteremos a lógica atual no frontend por simplicidade, mas esta seria a evolução.
 
-@app.get("/api/compare-contests/{contest_id_1}/{contest_id_2}")
-def compare_contests_endpoint(
-    contest_id_1: int,
-    contest_id_2: int,
-    db: Session = Depends(get_db)
-    # ✅ Este endpoint pode ser público para consulta de resultados
-):
-    """
-    Compara dois concursos e retorna candidatos em comum.
-    """
-    return crud.compare_contests(db, contest_id_1, contest_id_2)
+@app.get("/api/contests/compare/{contest_id_1}/{contest_id_2}")
+def compare_contests_api(contest_id_1: int, contest_id_2: int, db: Session = Depends(get_db)):
+    results = crud.compare_contests(db, contest_id_1, contest_id_2)
+    return {"matches": results, "count": len(results)}
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+@app.post("/api/results-by-names-batch")
+def results_by_names_batch(payload: schemas.NamesBatchRequest, db: Session = Depends(get_db)):
+    return crud.get_results_by_names_batch(db, payload.names)
+
 
