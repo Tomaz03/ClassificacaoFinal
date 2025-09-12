@@ -24,11 +24,11 @@ const Paginacao = ({ paginaAtual, totalPaginas, onPageChange }) => {
       <button onClick={() => onPageChange(1)} disabled={paginaAtual === 1} className="p-2 rounded-full hover:bg-gray-100 disabled:opacity-40 transition" aria-label="Primeira página">
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" /></svg>
       </button>
-      <button onClick={( ) => onPageChange(paginaAtual - 1)} disabled={paginaAtual === 1} className="p-2 rounded-full hover:bg-gray-100 disabled:opacity-40 transition" aria-label="Página anterior">
+      <button onClick={() => onPageChange(paginaAtual - 1)} disabled={paginaAtual === 1} className="p-2 rounded-full hover:bg-gray-100 disabled:opacity-40 transition" aria-label="Página anterior">
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
       </button>
       {inicio > 1 && <span className="px-2 py-1 text-gray-500">…</span>}
-      {paginas.map((p ) => (
+      {paginas.map((p) => (
         <button key={p} onClick={() => onPageChange(p)} className={`w-10 h-10 rounded-full transition flex items-center justify-center ${paginaAtual === p ? "bg-blue-600 text-white font-medium" : "hover:bg-gray-100 text-gray-700"}`}>
           {p}
         </button>
@@ -37,16 +37,27 @@ const Paginacao = ({ paginaAtual, totalPaginas, onPageChange }) => {
       <button onClick={() => onPageChange(paginaAtual + 1)} disabled={paginaAtual === totalPaginas} className="p-2 rounded-full hover:bg-gray-100 disabled:opacity-40 transition" aria-label="Próxima página">
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
       </button>
-      <button onClick={( ) => onPageChange(totalPaginas)} disabled={paginaAtual === totalPaginas} className="p-2 rounded-full hover:bg-gray-100 disabled:opacity-40 transition" aria-label="Última página">
+      <button onClick={() => onPageChange(totalPaginas)} disabled={paginaAtual === totalPaginas} className="p-2 rounded-full hover:bg-gray-100 disabled:opacity-40 transition" aria-label="Última página">
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>
       </button>
     </div>
-   );
+  );
 };
 
 // --- Sub-componente para a Tabela de Resultados ---
-const TabelaResultados = ({ resultados, onSalvarDadosExtras, onAbrirContatos, onVerOutrasListas, outrasStatusMap }) => {
-  // O conteúdo da tabela permanece o mesmo
+const TabelaResultados = ({ resultados, onSalvarDadosExtras, onAbrirContatos, onVerOutrasListas, outrasStatusMap, idListaAtual }) => {
+
+  // ✅✅✅ FUNÇÃO CORRIGIDA ✅✅✅
+  // Esta versão funciona com o backend atual que retorna booleano (true/false)
+  const estaEmOutrosConcursos = (nome) => {
+    // Se não temos o mapa de status ou o ID da lista atual, retornamos false por segurança.
+    if (!outrasStatusMap || !idListaAtual) return false;
+
+    // O backend retorna true/false. Se for true, assumimos que está em outro concurso.
+    // ⚠️ Limitação: não sabemos se é o concurso atual ou outro, mas é o melhor que podemos fazer sem alterar o backend.
+    return !!outrasStatusMap[nome]; // Converte para booleano
+  };
+
   return (
     <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
       <table className="w-full text-sm">
@@ -118,7 +129,14 @@ const TabelaResultados = ({ resultados, onSalvarDadosExtras, onAbrirContatos, on
                 </div>
               </td>
               <td className="px-5 py-4">
-                <button onClick={() => onVerOutrasListas(r.name)} className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition ${outrasStatusMap?.[r.name] ? "bg-green-200 hover:bg-green-300 text-green-900" : "bg-gray-200 hover:bg-gray-300 text-gray-800"}`}>
+                <button
+                  onClick={() => onVerOutrasListas(r.name)}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition ${
+                    estaEmOutrosConcursos(r.name) // <-- APLICA A NOVA LÓGICA AQUI
+                      ? "bg-green-200 hover:bg-green-300 text-green-900"
+                      : "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                  }`}
+                >
                   <ListBulletIcon className="h-4 w-4" /> Ver
                 </button>
               </td>
@@ -159,7 +177,7 @@ export default function MeusResultados() {
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-  const getAuthHeaders = ( ) => {
+  const getAuthHeaders = () => {
     const token = localStorage.getItem("access_token");
     return token ? { "Content-Type": "application/json", "Authorization": `Bearer ${token}` } : { "Content-Type": "application/json" };
   };
@@ -393,7 +411,14 @@ export default function MeusResultados() {
         {erro && <p className="text-center text-red-500 mt-4">{erro}</p>}
         {listaResultados.length > 0 && (
           <>
-            <TabelaResultados resultados={listaResultados} onSalvarDadosExtras={handleSalvarDadosExtras} onAbrirContatos={handleAbrirContatos} onVerOutrasListas={handleVerOutrasListas} outrasStatusMap={outrasStatusMap} />
+            <TabelaResultados
+              resultados={listaResultados}
+              onSalvarDadosExtras={handleSalvarDadosExtras}
+              onAbrirContatos={handleAbrirContatos}
+              onVerOutrasListas={handleVerOutrasListas}
+              outrasStatusMap={outrasStatusMap}
+              idListaAtual={idListaSelecionada} // <-- PASSANDO O ID DA LISTA ATUAL
+            />
             <Paginacao paginaAtual={paginaAtual} totalPaginas={totalPaginas} onPageChange={(novaPagina) => { setPaginaAtual(novaPagina); buscarResultados(novaPagina); }} />
           </>
         )}
