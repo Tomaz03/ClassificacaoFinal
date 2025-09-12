@@ -17,7 +17,18 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
   // 🔑 URL base do backend (Render ou localhost)
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+  // ✅ CORREÇÃO: Corrigir nome da variável de ambiente
+  const API_URL = import.meta.env.VITE_API_URL || import.meta.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
+
+  // ✅ CORREÇÃO: Função para obter o token de autorização (exportada)
+  const getAuthToken = () => {
+    return localStorage.getItem('access_token');
+  };
+
+  // ✅ CORREÇÃO: Verificar se o usuário é admin
+  const isAdmin = () => {
+    return user && user.role === 'admin';
+  };
 
   // Verificar se há token salvo no localStorage ao inicializar
   useEffect(() => {
@@ -54,15 +65,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('access_token', token);
       localStorage.setItem('user_data', JSON.stringify(userData));
       setUser(userData);
-
-      // 🔹 Redirecionamento por role
-      if (userData.role === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/meus-resultados");
-      }
-
-      return { success: true, user: userData };
+      return { success: true };
     } catch (error) {
       console.error('Erro ao fazer login com token:', error);
       return { success: false, error: error.message };
@@ -102,14 +105,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('user_data', JSON.stringify(userData));
       setUser(userData);
       
-      // 🔹 Redirecionamento por role
-      if (userData.role === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/meus-resultados");
-      }
-
-      return { success: true, user: userData };
+      return { success: true };
     } catch (error) {
       console.error('Erro no login:', error);
       return { success: false, error: 'Ocorreu um erro inesperado.' };
@@ -179,13 +175,9 @@ export const AuthProvider = ({ children }) => {
 
           cleanup();
           if (loginResult.success) {
-  if (loginResult.user?.role === "admin") {
-    navigate("/admin");
-  } else {
-    navigate("/meus-resultados");
-  }
-  resolve(loginResult);
-} else {
+            navigate('/meus-resultados');
+            resolve(loginResult);
+          } else {
             console.log("Falha no loginWithToken:", loginResult.error);
             reject(new Error('Falha ao processar o token do Google.'));
           }
@@ -215,39 +207,50 @@ export const AuthProvider = ({ children }) => {
     });
   };
 
-  // Função para obter o token de autorização
-  const getAuthToken = () => {
-    return localStorage.getItem('access_token');
-  };
-
-  // Função para fazer requisições autenticadas
+  // ✅ CORREÇÃO: Função para fazer requisições autenticadas (melhorada)
   const authenticatedFetch = async (url, options = {}) => {
     const token = getAuthToken();
+    
+    if (!token) {
+      throw new Error('Token de autenticação não encontrado. Faça login novamente.');
+    }
     
     const authOptions = {
       ...options,
       headers: {
         ...options.headers,
-        'Authorization': token ? `Bearer ${token}` : '',
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
     };
 
     try {
+      console.log(`🔍 Fazendo requisição autenticada para: ${url}`);
+      console.log(`🔑 Token: ${token.substring(0, 20)}...`);
+      
       const response = await fetch(url, authOptions);
       
+      console.log(`📡 Resposta recebida: ${response.status} ${response.statusText}`);
+      
       if (response.status === 401) {
+        console.error('❌ Token expirado ou inválido');
         logout();
         throw new Error('Sessão expirada. Faça login novamente.');
       }
       
+      if (response.status === 403) {
+        console.error('❌ Acesso negado - usuário não é admin');
+        throw new Error('Acesso negado. Apenas administradores podem acessar esta funcionalidade.');
+      }
+      
       return response;
     } catch (error) {
+      console.error('❌ Erro na requisição autenticada:', error);
       throw error;
     }
   };
 
-  // Valor fornecido pelo contexto
+  // ✅ CORREÇÃO: Valor fornecido pelo contexto (incluindo novas funções)
   const value = {
     user,
     loading,
@@ -256,10 +259,12 @@ export const AuthProvider = ({ children }) => {
     logout,
     handleGoogleLogin,
     loginWithToken,
-    authenticatedFetch
+    authenticatedFetch,
+    getAuthToken,  // ✅ Exportar função
+    isAdmin,       // ✅ Verificar se é admin
+    token: getAuthToken() // ✅ Disponibilizar token diretamente
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
-
 
