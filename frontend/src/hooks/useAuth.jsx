@@ -89,23 +89,30 @@ export const AuthProvider = ({ children }) => {
       }
       
       const data = await response.json();
-      localStorage.setItem('access_token', data.access_token);
+      localStorage.setItem("access_token", data.access_token);
       
       const userResponse = await fetch(`${API_URL}/auth/me`, {
         headers: {
-          'Authorization': `Bearer ${data.access_token}`,
+          "Authorization": `Bearer ${data.access_token}`,
         },
       });
       
       if (!userResponse.ok) {
-        throw new Error('Falha ao buscar dados do usuário.');
+        throw new Error("Falha ao buscar dados do usuário.");
       }
       
       const userData = await userResponse.json();
-      localStorage.setItem('user_data', JSON.stringify(userData));
+      localStorage.setItem("user_data", JSON.stringify(userData));
       setUser(userData);
       
-      return { success: true };
+      // ✅ CORREÇÃO: Redirecionar com base na role do usuário
+      if (userData.role === 'admin') {
+        navigate('/admin-dashboard', { replace: true });
+      } else {
+        navigate('/meus-resultados', { replace: true });
+      }
+      
+      return { success: true, user: userData };
     } catch (error) {
       console.error('Erro no login:', error);
       return { success: false, error: 'Ocorreu um erro inesperado.' };
@@ -175,7 +182,11 @@ export const AuthProvider = ({ children }) => {
 
           cleanup();
           if (loginResult.success) {
-            navigate('/meus-resultados');
+            if (loginResult.user && loginResult.user.role === 'admin') {
+              navigate('/admin-dashboard');
+            } else {
+              navigate('/meus-resultados');
+            }
             resolve(loginResult);
           } else {
             console.log("Falha no loginWithToken:", loginResult.error);
@@ -267,4 +278,5 @@ export const AuthProvider = ({ children }) => {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+
 
