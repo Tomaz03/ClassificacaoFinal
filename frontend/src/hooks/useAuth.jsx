@@ -17,18 +17,7 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
   // 🔑 URL base do backend (Render ou localhost)
-  // ✅ CORREÇÃO: Corrigir nome da variável de ambiente
-  const API_URL = import.meta.env.VITE_API_URL || import.meta.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
-
-  // ✅ CORREÇÃO: Função para obter o token de autorização (exportada)
-  const getAuthToken = () => {
-    return localStorage.getItem('access_token');
-  };
-
-  // ✅ CORREÇÃO: Verificar se o usuário é admin
-  const isAdmin = () => {
-    return user && user.role === 'admin';
-  };
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
   // Verificar se há token salvo no localStorage ao inicializar
   useEffect(() => {
@@ -65,7 +54,15 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('access_token', token);
       localStorage.setItem('user_data', JSON.stringify(userData));
       setUser(userData);
-      return { success: true };
+
+      // 🔹 Redirecionamento por role
+      if (userData.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/meus-resultados");
+      }
+
+      return { success: true, user: userData };
     } catch (error) {
       console.error('Erro ao fazer login com token:', error);
       return { success: false, error: error.message };
@@ -89,29 +86,29 @@ export const AuthProvider = ({ children }) => {
       }
       
       const data = await response.json();
-      localStorage.setItem("access_token", data.access_token);
+      localStorage.setItem('access_token', data.access_token);
       
       const userResponse = await fetch(`${API_URL}/auth/me`, {
         headers: {
-          "Authorization": `Bearer ${data.access_token}`,
+          'Authorization': `Bearer ${data.access_token}`,
         },
       });
       
       if (!userResponse.ok) {
-        throw new Error("Falha ao buscar dados do usuário.");
+        throw new Error('Falha ao buscar dados do usuário.');
       }
       
       const userData = await userResponse.json();
-      localStorage.setItem("user_data", JSON.stringify(userData));
+      localStorage.setItem('user_data', JSON.stringify(userData));
       setUser(userData);
       
-      // ✅ CORREÇÃO: Redirecionar com base na role do usuário
-      if (userData.role === 'admin') {
-        navigate('/admin-dashboard', { replace: true });
+      // 🔹 Redirecionamento por role
+      if (userData.role === "admin") {
+        navigate("/admin");
       } else {
-        navigate('/meus-resultados', { replace: true });
+        navigate("/meus-resultados");
       }
-      
+
       return { success: true, user: userData };
     } catch (error) {
       console.error('Erro no login:', error);
@@ -182,13 +179,13 @@ export const AuthProvider = ({ children }) => {
 
           cleanup();
           if (loginResult.success) {
-            if (loginResult.user && loginResult.user.role === 'admin') {
-              navigate('/admin-dashboard');
-            } else {
-              navigate('/meus-resultados');
-            }
-            resolve(loginResult);
-          } else {
+  if (loginResult.user?.role === "admin") {
+    navigate("/admin");
+  } else {
+    navigate("/meus-resultados");
+  }
+  resolve(loginResult);
+} else {
             console.log("Falha no loginWithToken:", loginResult.error);
             reject(new Error('Falha ao processar o token do Google.'));
           }
@@ -218,50 +215,39 @@ export const AuthProvider = ({ children }) => {
     });
   };
 
-  // ✅ CORREÇÃO: Função para fazer requisições autenticadas (melhorada)
+  // Função para obter o token de autorização
+  const getAuthToken = () => {
+    return localStorage.getItem('access_token');
+  };
+
+  // Função para fazer requisições autenticadas
   const authenticatedFetch = async (url, options = {}) => {
     const token = getAuthToken();
-    
-    if (!token) {
-      throw new Error('Token de autenticação não encontrado. Faça login novamente.');
-    }
     
     const authOptions = {
       ...options,
       headers: {
         ...options.headers,
-        'Authorization': `Bearer ${token}`,
+        'Authorization': token ? `Bearer ${token}` : '',
         'Content-Type': 'application/json',
       },
     };
 
     try {
-      console.log(`🔍 Fazendo requisição autenticada para: ${url}`);
-      console.log(`🔑 Token: ${token.substring(0, 20)}...`);
-      
       const response = await fetch(url, authOptions);
       
-      console.log(`📡 Resposta recebida: ${response.status} ${response.statusText}`);
-      
       if (response.status === 401) {
-        console.error('❌ Token expirado ou inválido');
         logout();
         throw new Error('Sessão expirada. Faça login novamente.');
       }
       
-      if (response.status === 403) {
-        console.error('❌ Acesso negado - usuário não é admin');
-        throw new Error('Acesso negado. Apenas administradores podem acessar esta funcionalidade.');
-      }
-      
       return response;
     } catch (error) {
-      console.error('❌ Erro na requisição autenticada:', error);
       throw error;
     }
   };
 
-  // ✅ CORREÇÃO: Valor fornecido pelo contexto (incluindo novas funções)
+  // Valor fornecido pelo contexto
   const value = {
     user,
     loading,
@@ -270,10 +256,7 @@ export const AuthProvider = ({ children }) => {
     logout,
     handleGoogleLogin,
     loginWithToken,
-    authenticatedFetch,
-    getAuthToken,  // ✅ Exportar função
-    isAdmin,       // ✅ Verificar se é admin
-    token: getAuthToken() // ✅ Disponibilizar token diretamente
+    authenticatedFetch
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
