@@ -9,6 +9,7 @@ from sqlalchemy import func
 from fastapi import HTTPException, status
 from collections import Counter, defaultdict
 import unicodedata
+import json
 import logging
 logger = logging.getLogger(__name__)
 
@@ -232,25 +233,59 @@ def get_extra_by_result_id(db: Session, contest_result_id: int):
 def create_or_update_extra(db: Session, extra_data: Dict):
     contest_result_id = extra_data.get("contest_result_id")
     if contest_result_id is None:
-        raise ValueError("contest_result_id é obrigatório")
+        raise HTTPException(status_code=400, detail="contest_result_id é obrigatório")
 
-    exists = db.query(models.ContestResult).filter_by(id=contest_result_id).first()
-    if not exists:
-        raise HTTPException(status_code=400, detail=f"contest_result_id {contest_result_id} não existe")
+    db_extra = None
+    
+    # --- ETAPA 1: ENCONTRAR OU CRIAR EM UMA TRANSAÇÃO SEGURA ---
+    # Usamos begin_nested() para criar um SAVEPOINT. Isso isola a operação
+    # de busca e garante que estamos lendo o estado mais recente do banco,
+    # mesmo que a sessão principal esteja em um estado inconsistente.
+    with db.begin_nested():
+        db_extra = db.query(models.ContestResultExtra).filter_by(
+            contest_result_id=contest_result_id
+        ).first()
 
-    db_obj = db.query(models.ContestResultExtra).filter_by(contest_result_id=contest_result_id).first()
+        if not db_extra:
+            # Garante que o resultado principal existe antes de criar o extra.
+            contest_result = db.query(models.ContestResult).filter_by(id=contest_result_id).first()
+            if not contest_result:
+                raise HTTPException(status_code=404, detail=f"Resultado com id {contest_result_id} não encontrado.")
+            
+            print(f"✅ CRIANDO novo extra para contest_result_id: {contest_result_id}")
+            db_extra = models.ContestResultExtra(contest_result_id=contest_result_id)
+            db.add(db_extra)
+            # Faz um flush para enviar o novo objeto para o DB e obter um ID, mas sem fazer o commit final.
+            db.flush() 
+        else:
+            print(f"✅ ATUALIZANDO extra para contest_result_id: {contest_result_id}")
 
-    if db_obj:
+    # --- ETAPA 2: APLICAR ATUALIZAÇÕES E FAZER O COMMIT FINAL ---
+    try:
+        # Agora, com o objeto db_extra (novo ou existente) garantido, aplicamos as mudanças.
         for key, value in extra_data.items():
-            if key != "contest_result_id" and value is not None:
-                setattr(db_obj, key, value)
-    else:
-        db_obj = models.ContestResultExtra(**extra_data)
-        db.add(db_obj)
+            if key not in ["id", "contest_result_id"]:
+                if key in ['outras_listas', 'contatos'] and isinstance(value, str):
+                    try:
+                        value = json.loads(value)
+                    except json.JSONDecodeError:
+                        value = None
+                
+                if hasattr(db_extra, key):
+                    setattr(db_extra, key, value)
 
-    db.commit()
-    db.refresh(db_obj)
-    return db_obj
+        db_extra.updated_at = datetime.now(timezone.utc)
+
+        # Faz o commit final da transação principal.
+        db.commit()
+        db.refresh(db_extra)
+
+    except Exception as e:
+        db.rollback()
+        print(f"❌ Erro no commit do banco de dados: {e}")
+        raise HTTPException(status_code=500, detail=f"Erro interno do servidor ao salvar: {e}")
+        
+    return db_extra
 
 def get_extras_by_contest(db: Session, contest_id: int):
     return (
