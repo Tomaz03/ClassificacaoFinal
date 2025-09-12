@@ -89,7 +89,24 @@ const TabelaResultados = ({ resultados, onSalvarDadosExtras, onAbrirContatos, on
               </td>
               <td className="px-5 py-4">
                 <div className="relative inline-block w-full">
-                  <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${r.vai_assumir === "SIM" ? "bg-green-100 text-green-800 border border-green-200" : r.vai_assumir === "TALVEZ" ? "bg-yellow-100 text-yellow-800 border border-yellow-200" : r.vai_assumir === "NÃO" ? "bg-red-100 text-red-800 border border-red-200" : "bg-gray-50 text-gray-500 border border-gray-200"}`}>
+                  <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      r.situacao === "Empossado"
+                        ? "bg-green-100 text-green-800 border border-green-200"
+                        : r.situacao === "Nomeado"
+                        ? "bg-blue-100 text-blue-800 border border-blue-200"
+                        : r.situacao === "Convocado"
+                        ? "bg-yellow-100 text-yellow-800 border border-yellow-200"
+                        : r.situacao === "Aguardando Convocação"
+                        ? "bg-gray-100 text-gray-800 border border-gray-200"
+                        : r.situacao === "Termo de Desistência"
+                        ? "bg-red-100 text-red-800 border border-red-200"
+                        : r.situacao === "Excluído da Lista"
+                        ? "bg-red-100 text-red-800 border border-red-200"
+                        : r.situacao === "Tornado sem efeito"
+                        ? "bg-red-100 text-red-800 border border-red-200"
+                        : r.situacao === "Exonerado"
+                        ? "bg-red-100 text-red-800 border border-red-200"
+                        : "bg-gray-50 text-gray-500 border border-gray-200"}`}>
                     <span>{r.vai_assumir || "Selecione"}</span>
                   </div>
                   <select value={r.vai_assumir} onChange={(e) => onSalvarDadosExtras(r.id, "vai_assumir", e.target.value)} className="absolute inset-0 opacity-0 cursor-pointer z-10 h-full w-full">
