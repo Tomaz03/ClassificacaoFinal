@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { EyeIcon, ArrowsRightLeftIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import logo from '../assets/logo.png';
 
 export default function Home() {
@@ -46,7 +47,7 @@ export default function Home() {
       {/* Seção principal */}
       <main className="flex flex-col items-center text-center bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-6 py-16">
         <h1 className="text-3xl sm:text-3xl font-extrabold mb-6 leading-tight max-w-3xl">
-          Bem-vindo ao Metas da Aprovação!
+          Bem-vindo ao Classificação Final!
         </h1>
         <p className="text-lg sm:text-xl max-w-3xl mb-8 leading-relaxed text-justify md:text-center">
           A plataforma mais completa para acompanhar resultados de concursos públicos.
@@ -63,21 +64,27 @@ export default function Home() {
       {/* Benefícios - Cards responsivos e alinhados com a página */}
       <section className="py-12 px-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto text-center">
         <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-          <div className="text-5xl mb-3 text-pink-500">🧠</div>
+          <div className="flex justify-center mb-4">
+            <EyeIcon className="h-12 w-12 text-blue-600" />
+          </div>
           <h3 className="text-xl font-bold mb-2 text-gray-800">Monitore o resultado final dos concursos</h3>
           <p className="text-gray-600 text-sm text-justify leading-relaxed">
             Acompanhe em tempo real a classificação final do concurso, com atualizações automáticas e notificações personalizadas.
           </p>
         </div>
         <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-          <div className="text-5xl mb-3 text-blue-500">📊</div>
+          <div className="flex justify-center mb-4">
+            <ArrowsRightLeftIcon className="h-12 w-12 text-purple-600" />
+          </div>
           <h3 className="text-xl font-bold mb-2 text-gray-800">Comparação com outras listas de concursos</h3>
           <p className="text-gray-600 text-sm text-justify leading-relaxed">
             Compare sua posição com outros candidatos em diferentes concursos, identificando tendências e estratégias de aprovação.
           </p>
         </div>
         <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-          <div className="text-5xl mb-3 text-teal-500">🚀</div>
+          <div className="flex justify-center mb-4">
+            <MagnifyingGlassIcon className="h-12 w-12 text-green-600" />
+          </div>
           <h3 className="text-xl font-bold mb-2 text-gray-800">Consulta dos Resultados do candidato pelo seu nome</h3>
           <p className="text-gray-600 text-sm text-justify leading-relaxed">
             Encontre rapidamente sua posição digitando seu nome, sem precisar baixar arquivos ou procurar manualmente.
@@ -89,7 +96,7 @@ export default function Home() {
       <section className="bg-white text-center py-12 px-4">
         <p className="text-lg sm:text-xl text-gray-700 max-w-3xl mx-auto mb-6 text-justify md:text-center">
           Junte-se aos demais candidatos que já estão acompanhando seus resultados conosco. Cadastre-se grátis no{' '}
-          <strong>Metas da Aprovação</strong> e comece a transformar seus estudos em resultados.
+          <strong>Classificação Final</strong> e comece a transformar seus estudos em resultados.
         </p>
         <p className="text-xl font-semibold text-blue-700 mb-6">A prática leva à perfeição – e seus resultados está a apenas um clique!</p>
         <button
@@ -102,7 +109,7 @@ export default function Home() {
 
       {/* Rodapé */}
       <footer className="bg-gray-800 text-center text-sm text-gray-300 py-6 mt-8">
-        © {new Date().getFullYear()} Metas da Aprovação. Todos os direitos reservados.
+        © {new Date().getFullYear()} Classificação Final. Todos os direitos reservados.
       </footer>
     </div>
   );
