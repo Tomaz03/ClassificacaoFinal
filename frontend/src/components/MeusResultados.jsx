@@ -20,25 +20,61 @@ const Paginacao = ({ paginaAtual, totalPaginas, onPageChange }) => {
   }
 
   return (
-    <div className="flex justify-center items-center gap-1 mt-6">
-      <button onClick={() => onPageChange(1)} disabled={paginaAtual === 1} className="p-2 rounded-full hover:bg-gray-100 disabled:opacity-40 transition" aria-label="Primeira página">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" /></svg>
+    <div className="flex justify-center items-center gap-2 mt-10">
+      <button
+        onClick={() => onPageChange(1)}
+        disabled={paginaAtual === 1}
+        className="p-3 rounded-full hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 bg-white border border-gray-200 shadow-md"
+        aria-label="Primeira página"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+        </svg>
       </button>
-      <button onClick={() => onPageChange(paginaAtual - 1)} disabled={paginaAtual === 1} className="p-2 rounded-full hover:bg-gray-100 disabled:opacity-40 transition" aria-label="Página anterior">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+      <button
+        onClick={() => onPageChange(paginaAtual - 1)}
+        disabled={paginaAtual === 1}
+        className="p-3 rounded-full hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 bg-white border border-gray-200 shadow-md"
+        aria-label="Página anterior"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
       </button>
-      {inicio > 1 && <span className="px-2 py-1 text-gray-500">…</span>}
+      {inicio > 1 && <span className="px-3 py-2 text-gray-500 font-medium">…</span>}
       {paginas.map((p) => (
-        <button key={p} onClick={() => onPageChange(p)} className={`w-10 h-10 rounded-full transition flex items-center justify-center ${paginaAtual === p ? "bg-blue-600 text-white font-medium" : "hover:bg-gray-100 text-gray-700"}`}>
+        <button
+          key={p}
+          onClick={() => onPageChange(p)}
+          className={`w-12 h-12 rounded-full transition-all duration-300 flex items-center justify-center font-semibold text-sm ${
+            paginaAtual === p
+              ? "bg-indigo-600 text-white border-indigo-600 shadow-lg"
+              : "hover:bg-indigo-100 text-gray-700 border-gray-200 bg-white shadow-md"
+          } border`}
+        >
           {p}
         </button>
       ))}
-      {fim < totalPaginas && <span className="px-2 py-1 text-gray-500">…</span>}
-      <button onClick={() => onPageChange(paginaAtual + 1)} disabled={paginaAtual === totalPaginas} className="p-2 rounded-full hover:bg-gray-100 disabled:opacity-40 transition" aria-label="Próxima página">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+      {fim < totalPaginas && <span className="px-3 py-2 text-gray-500 font-medium">…</span>}
+      <button
+        onClick={() => onPageChange(paginaAtual + 1)}
+        disabled={paginaAtual === totalPaginas}
+        className="p-3 rounded-full hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 bg-white border border-gray-200 shadow-md"
+        aria-label="Próxima página"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
       </button>
-      <button onClick={() => onPageChange(totalPaginas)} disabled={paginaAtual === totalPaginas} className="p-2 rounded-full hover:bg-gray-100 disabled:opacity-40 transition" aria-label="Última página">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>
+      <button
+        onClick={() => onPageChange(totalPaginas)}
+        disabled={paginaAtual === totalPaginas}
+        className="p-3 rounded-full hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 bg-white border border-gray-200 shadow-md"
+        aria-label="Última página"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+        </svg>
       </button>
     </div>
   );
@@ -46,63 +82,109 @@ const Paginacao = ({ paginaAtual, totalPaginas, onPageChange }) => {
 
 // --- Sub-componente para a Tabela de Resultados ---
 const TabelaResultados = ({ resultados, onSalvarDadosExtras, onAbrirContatos, onVerOutrasListas, outrasStatusMap, idListaAtual }) => {
-
-  // ✅✅✅ FUNÇÃO CORRIGIDA ✅✅✅
-  // Esta versão funciona com o backend atual que retorna booleano (true/false)
   const estaEmOutrosConcursos = (nome) => {
-    // Se não temos o mapa de status ou o ID da lista atual, retornamos false por segurança.
     if (!outrasStatusMap || !idListaAtual) return false;
+    return !!outrasStatusMap[nome];
+  };
 
-    // O backend retorna true/false. Se for true, assumimos que está em outro concurso.
-    // ⚠️ Limitação: não sabemos se é o concurso atual ou outro, mas é o melhor que podemos fazer sem alterar o backend.
-    return !!outrasStatusMap[nome]; // Converte para booleano
+  // Função para renderizar a badge da categoria
+  const renderCategoriaBadge = (categoria) => {
+    const getBadgeClasses = (cat) => {
+      switch (cat) {
+        case "Ampla":
+          return "bg-blue-100 text-blue-800 border-blue-200";
+        case "PPP":
+          return "bg-purple-100 text-purple-800 border-purple-200";
+        case "PCD":
+          return "bg-green-100 text-green-800 border-green-200";
+        case "Indígenas":
+          return "bg-orange-100 text-orange-800 border-orange-200";
+        case "Hipossuficientes":
+          return "bg-gray-100 text-gray-800 border-gray-200";
+        default:
+          return "bg-gray-100 text-gray-800 border-gray-200";
+      }
+    };
+
+    return (
+      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getBadgeClasses(categoria)}`}>
+        {categoria}
+      </span>
+    );
   };
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
-      <table className="w-full text-sm">
-        <thead className="bg-gradient-to-r from-blue-50 to-blue-100 text-blue-800">
+    <div className="overflow-x-auto rounded-2xl border border-gray-100 shadow-lg bg-white mt-8">
+      <table className="min-w-full text-sm">
+        <thead className="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white">
           <tr>
-            <th className="px-5 py-3 text-left font-semibold uppercase tracking-wider">Posição</th>
-            <th className="px-5 py-3 text-left font-semibold uppercase tracking-wider">Categoria</th>
-            <th className="px-5 py-3 text-left font-semibold uppercase tracking-wider">Nome</th>
-            <th className="px-5 py-3 text-left font-semibold uppercase tracking-wider">Nota</th>
-            <th className="px-5 py-3 text-left font-semibold uppercase tracking-wider">Situação</th>
-            <th className="px-5 py-3 text-left font-semibold uppercase tracking-wider">Vai Assumir?</th>
-            <th className="px-5 py-3 text-left font-semibold uppercase tracking-wider">Outras Listas</th>
-            <th className="px-5 py-3 text-left font-semibold uppercase tracking-wider">Contatos</th>
+            <th className="px-6 py-4 text-left font-semibold uppercase tracking-wider text-xs">Posição</th>
+            <th className="px-6 py-4 text-left font-semibold uppercase tracking-wider text-xs">Categoria</th>
+            <th className="px-6 py-4 text-left font-semibold uppercase tracking-wider text-xs">Nome</th>
+            <th className="px-6 py-4 text-left font-semibold uppercase tracking-wider text-xs">Nota</th>
+            <th className="px-6 py-4 text-left font-semibold uppercase tracking-wider text-xs">Situação</th>
+            <th className="px-6 py-4 text-left font-semibold uppercase tracking-wider text-xs">Vai Assumir?</th>
+            <th className="px-6 py-4 text-left font-semibold uppercase tracking-wider text-xs">Outras Listas</th>
+            <th className="px-6 py-4 text-left font-semibold uppercase tracking-wider text-xs">Contatos</th>
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-100">
-          {resultados.map((r) => (
-            <tr key={r.id} className="hover:bg-blue-50 transition duration-150">
-              <td className="px-5 py-4 font-medium text-gray-900">{r.position}º</td>
-              <td className="px-5 py-4 text-gray-600">{r.category}</td>
-              <td className="px-5 py-4 font-medium text-gray-900">{r.name}</td>
-              <td className="px-5 py-4 text-gray-700">{r.final_score}</td>
-              <td className="px-5 py-4">
+        <tbody className="divide-y divide-gray-100">
+          {resultados.map((r, index) => (
+            <tr
+              key={r.id}
+              className={`hover:bg-indigo-50 transition-all duration-200 ${
+                index % 2 === 0 ? "bg-gray-50" : "bg-white"
+              }`}
+            >
+              {/* Posição */}
+              <td className="px-6 py-5 font-medium text-gray-900 whitespace-nowrap">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-lg">{r.position}º</span>
+                </div>
+              </td>
+
+              {/* Categoria */}
+              <td className="px-6 py-5 text-gray-700">
+                {renderCategoriaBadge(r.category)}
+              </td>
+
+              {/* Nome */}
+              <td className="px-6 py-5 font-medium text-gray-900 max-w-xs truncate">{r.name}</td>
+
+              {/* Nota */}
+              <td className="px-6 py-5 text-gray-700 font-medium whitespace-nowrap">{r.final_score}</td>
+
+              {/* Situação */}
+              <td className="px-6 py-5">
                 <div className="relative inline-block w-full">
-                  <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  <div
+                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${
                       r.situacao === "Empossado"
-                        ? "bg-green-100 text-green-800 border border-green-200"
+                        ? "bg-emerald-50 text-emerald-800 border-emerald-200"
                         : r.situacao === "Nomeado"
-                        ? "bg-blue-100 text-blue-800 border border-blue-200"
+                        ? "bg-indigo-50 text-indigo-800 border-indigo-200"
                         : r.situacao === "Convocado"
-                        ? "bg-yellow-100 text-yellow-800 border border-yellow-200"
+                        ? "bg-amber-50 text-amber-800 border-amber-200"
                         : r.situacao === "Aguardando Convocação"
-                        ? "bg-gray-100 text-gray-800 border border-gray-200"
+                        ? "bg-gray-50 text-gray-800 border-gray-200"
                         : r.situacao === "Termo de Desistência"
-                        ? "bg-red-100 text-red-800 border border-red-200"
+                        ? "bg-rose-50 text-rose-800 border-rose-200"
                         : r.situacao === "Excluído da Lista"
-                        ? "bg-red-100 text-red-800 border border-red-200"
+                        ? "bg-rose-50 text-rose-800 border-rose-200"
                         : r.situacao === "Tornado sem efeito"
-                        ? "bg-red-100 text-red-800 border border-red-200"
+                        ? "bg-rose-50 text-rose-800 border-rose-200"
                         : r.situacao === "Exonerado"
-                        ? "bg-red-100 text-red-800 border border-red-200"
-                        : "bg-gray-50 text-gray-500 border border-gray-200"}`}>
+                        ? "bg-rose-50 text-rose-800 border-rose-200"
+                        : "bg-gray-50 text-gray-500 border-gray-200"
+                    }`}
+                  >
                     <span>{r.situacao || "Selecione"}</span>
                   </div>
-                  <select value={r.situacao} onChange={(e) => onSalvarDadosExtras(r.id, "situacao", e.target.value)} className="absolute inset-0 opacity-0 cursor-pointer z-10 h-full w-full">
+                  <select
+                    value={r.situacao}
+                    onChange={(e) => onSalvarDadosExtras(r.id, "situacao", e.target.value)}
+                    className="absolute inset-0 opacity-0 cursor-pointer z-10 h-full w-full"
+                  >
                     <option value="">Selecione</option>
                     <option value="Aguardando Convocação">Aguardando Convocação</option>
                     <option value="Convocado">Convocado</option>
@@ -115,12 +197,28 @@ const TabelaResultados = ({ resultados, onSalvarDadosExtras, onAbrirContatos, on
                   </select>
                 </div>
               </td>
-              <td className="px-5 py-4">
+
+              {/* Vai Assumir? */}
+              <td className="px-6 py-5">
                 <div className="relative inline-block w-full">
-                  <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${r.vai_assumir === "SIM" ? "bg-green-100 text-green-800 border border-green-200" : r.vai_assumir === "TALVEZ" ? "bg-yellow-100 text-yellow-800 border border-yellow-200" : r.vai_assumir === "NÃO" ? "bg-red-100 text-red-800 border border-red-200" : "bg-gray-50 text-gray-500 border border-gray-200"}`}>
+                  <div
+                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${
+                      r.vai_assumir === "SIM"
+                        ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                        : r.vai_assumir === "TALVEZ"
+                        ? "bg-amber-50 text-amber-800 border-amber-200"
+                        : r.vai_assumir === "NÃO"
+                        ? "bg-rose-50 text-rose-800 border-rose-200"
+                        : "bg-gray-50 text-gray-500 border-gray-200"
+                    }`}
+                  >
                     <span>{r.vai_assumir || "Selecione"}</span>
                   </div>
-                  <select value={r.vai_assumir} onChange={(e) => onSalvarDadosExtras(r.id, "vai_assumir", e.target.value)} className="absolute inset-0 opacity-0 cursor-pointer z-10 h-full w-full">
+                  <select
+                    value={r.vai_assumir}
+                    onChange={(e) => onSalvarDadosExtras(r.id, "vai_assumir", e.target.value)}
+                    className="absolute inset-0 opacity-0 cursor-pointer z-10 h-full w-full"
+                  >
                     <option value="">Selecione</option>
                     <option value="SIM">SIM</option>
                     <option value="TALVEZ">TALVEZ</option>
@@ -128,21 +226,32 @@ const TabelaResultados = ({ resultados, onSalvarDadosExtras, onAbrirContatos, on
                   </select>
                 </div>
               </td>
-              <td className="px-5 py-4">
+
+              {/* Outras Listas */}
+              <td className="px-6 py-5">
                 <button
                   onClick={() => onVerOutrasListas(r.name)}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition ${
-                    estaEmOutrosConcursos(r.name) // <-- APLICA A NOVA LÓGICA AQUI
-                      ? "bg-green-200 hover:bg-green-300 text-green-900"
-                      : "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    estaEmOutrosConcursos(r.name)
+                      ? "bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border border-emerald-200"
+                      : "bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-200"
                   }`}
                 >
-                  <ListBulletIcon className="h-4 w-4" /> Ver
+                  <ListBulletIcon className="h-5 w-5" /> Ver
                 </button>
               </td>
-              <td className="px-5 py-4">
-                <button onClick={() => onAbrirContatos(r)} className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition ${r.contatos ? "bg-green-100 hover:bg-green-200 text-green-800" : "bg-gray-100 hover:bg-gray-200 text-gray-800"}`}>
-                  <PhoneIcon className="h-4 w-4" /> {r.contatos ? "Editar" : "Adicionar"}
+
+              {/* Contatos */}
+              <td className="px-6 py-5">
+                <button
+                  onClick={() => onAbrirContatos(r)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 border ${
+                    r.contatos
+                      ? "bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border-emerald-200"
+                      : "bg-gray-100 hover:bg-gray-200 text-gray-800 border-gray-200"
+                  }`}
+                >
+                  <PhoneIcon className="h-5 w-5" /> {r.contatos ? "Editar" : "Adicionar"}
                 </button>
               </td>
             </tr>
@@ -265,7 +374,6 @@ export default function MeusResultados() {
     carregarConcursos();
   }, [API_URL]);
 
-  // ✅✅✅ FUNÇÃO ATUALIZADA E OTIMIZADA ✅✅✅
   const buscarResultados = async (pagina = 1) => {
     if (!idListaSelecionada) return;
 
@@ -275,8 +383,7 @@ export default function MeusResultados() {
     try {
       const headers = getAuthHeaders();
       const skip = (pagina - 1) * ITENS_POR_PAGINA;
-      
-      // 1. FAZ APENAS UMA REQUISIÇÃO PARA OBTER OS RESULTADOS JÁ COM OS EXTRAS
+
       const res = await fetch(
         `${API_URL}/api/contest-results/${idListaSelecionada}?skip=${skip}&limit=${ITENS_POR_PAGINA}&category=${encodeURIComponent(filtroTipo)}`,
         { headers }
@@ -286,25 +393,22 @@ export default function MeusResultados() {
 
       const resultadosDaApi = await res.json();
 
-      // 2. MAPEIA OS RESULTADOS, ADICIONANDO VALORES PADRÃO SE 'extra' FOR NULO
       const resultadosMapeados = resultadosDaApi.map((resultado) => ({
         ...resultado,
         situacao: resultado.extra?.situacao || "Aguardando Convocação",
         vai_assumir: resultado.extra?.vai_assumir || "",
-        contatos: resultado.extra?.contatos || null, // Garante que contatos seja null se não existir
+        contatos: resultado.extra?.contatos || null,
       }));
 
       setListaResultados(resultadosMapeados);
 
-      // 3. BUSCA O TOTAL DE RESULTADOS PARA A PAGINAÇÃO
       const resCount = await fetch(`${API_URL}/api/contest-results-count/${idListaSelecionada}?category=${encodeURIComponent(filtroTipo)}`, { headers });
       if (resCount.ok) {
         const { total } = await resCount.json();
         setTotalResultados(total);
       } else {
-        setTotalResultados(resultadosDaApi.length); // Fallback
+        setTotalResultados(resultadosDaApi.length);
       }
-
     } catch (err) {
       console.error("Erro ao buscar resultados:", err);
       setErro("Erro ao carregar resultados. Tente novamente.");
@@ -357,7 +461,10 @@ export default function MeusResultados() {
         const res = await fetch(`${API_URL}/api/results-by-names-batch`, {
           method: "POST",
           headers,
-          body: JSON.stringify({ names: nomes }),
+          body: JSON.stringify({
+            names: nomes,
+            exclude_contest_id: parseInt(idListaSelecionada),
+          }),
         });
         if (!res.ok) throw new Error("Falha na requisição em lote");
         const data = await res.json();
@@ -372,32 +479,68 @@ export default function MeusResultados() {
   }, [API_URL, listaResultados, idListaSelecionada]);
 
   if (carregando && todosConcursos.length === 0) {
-    return <div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div></div>;
+    return (
+      <div className="flex justify-center items-center h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+        <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-b-4 border-indigo-600"></div>
+      </div>
+    );
   }
-  
+
   if (erro && todosConcursos.length === 0) {
-    return <div className="p-6 text-center"><div className="text-red-600 font-medium mb-4">{erro}</div><button onClick={() => window.location.reload()} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Tentar Novamente</button></div>;
+    return (
+      <div className="p-10 text-center bg-white rounded-2xl shadow-xl max-w-md mx-auto mt-20 border border-gray-100">
+        <div className="text-rose-600 font-semibold mb-6 text-xl">⚠️ {erro}</div>
+        <button
+          onClick={() => window.location.reload()}
+          className="px-8 py-3 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition-all duration-300 font-semibold shadow-lg"
+        >
+          Tentar Novamente
+        </button>
+      </div>
+    );
   }
 
   if (concursoAgrupadoSelecionado) {
     return (
-      <div className="p-6 bg-gray-50 min-h-screen">
-        <button onClick={() => { setConcursoAgrupadoSelecionado(null); setIdListaSelecionada(""); setListaResultados([]); }} className="mb-6 flex items-center gap-2 text-blue-600 hover:text-blue-800 transition font-medium">
-          <ArrowLeftIcon className="h-5 w-5" /> Voltar
+      <div className="p-8 bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen">
+        <button
+          onClick={() => {
+            setConcursoAgrupadoSelecionado(null);
+            setIdListaSelecionada("");
+            setListaResultados([]);
+          }}
+          className="mb-8 flex items-center gap-2 text-indigo-600 hover:text-indigo-800 transition-all duration-300 font-semibold text-lg"
+        >
+          <ArrowLeftIcon className="h-6 w-6" /> Voltar
         </button>
-        <h2 className="text-3xl font-bold text-gray-800 mb-6">{concursoAgrupadoSelecionado}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <h2 className="text-4xl font-bold text-gray-900 mb-10 tracking-tight">{concursoAgrupadoSelecionado}</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Selecione a Lista</label>
-            <select value={idListaSelecionada} onChange={(e) => { setIdListaSelecionada(e.target.value); setFiltroTipo("Ampla"); }} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white shadow-sm">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Selecione a Lista</label>
+            <select
+              value={idListaSelecionada}
+              onChange={(e) => {
+                setIdListaSelecionada(e.target.value);
+                setFiltroTipo("Ampla");
+              }}
+              className="w-full p-4 border border-gray-200 rounded-xl focus:ring-4 focus:ring-indigo-100 bg-white shadow-md transition-all duration-300 focus:border-indigo-500 outline-none text-gray-700"
+            >
               <option value="">-- Escolha uma lista --</option>
-              {listasDisponiveis.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
+              {listasDisponiveis.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
             </select>
           </div>
           {idListaSelecionada && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Categoria</label>
-              <select value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white shadow-sm">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Categoria</label>
+              <select
+                value={filtroTipo}
+                onChange={(e) => setFiltroTipo(e.target.value)}
+                className="w-full p-4 border border-gray-200 rounded-xl focus:ring-4 focus:ring-indigo-100 bg-white shadow-md transition-all duration-300 focus:border-indigo-500 outline-none text-gray-700"
+              >
                 <option value="Ampla">Ampla Concorrência</option>
                 <option value="PPP">Pardos/Negros (PPP)</option>
                 <option value="PCD">Pessoas com Deficiência (PCD)</option>
@@ -407,8 +550,15 @@ export default function MeusResultados() {
             </div>
           )}
         </div>
-        {carregando && idListaSelecionada && <div className="flex justify-center py-8"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div></div>}
-        {erro && <p className="text-center text-red-500 mt-4">{erro}</p>}
+
+        {carregando && idListaSelecionada && (
+          <div className="flex justify-center py-16">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-indigo-600"></div>
+          </div>
+        )}
+
+        {erro && <p className="text-center text-rose-600 mt-6 font-semibold text-lg">{erro}</p>}
+
         {listaResultados.length > 0 && (
           <>
             <TabelaResultados
@@ -417,51 +567,99 @@ export default function MeusResultados() {
               onAbrirContatos={handleAbrirContatos}
               onVerOutrasListas={handleVerOutrasListas}
               outrasStatusMap={outrasStatusMap}
-              idListaAtual={idListaSelecionada} // <-- PASSANDO O ID DA LISTA ATUAL
+              idListaAtual={idListaSelecionada}
             />
-            <Paginacao paginaAtual={paginaAtual} totalPaginas={totalPaginas} onPageChange={(novaPagina) => { setPaginaAtual(novaPagina); buscarResultados(novaPagina); }} />
+            <Paginacao
+              paginaAtual={paginaAtual}
+              totalPaginas={totalPaginas}
+              onPageChange={(novaPagina) => {
+                setPaginaAtual(novaPagina);
+                buscarResultados(novaPagina);
+              }}
+            />
           </>
         )}
-        {!carregando && idListaSelecionada && listaResultados.length === 0 && <p className="text-center text-gray-500 mt-8 py-6 bg-white rounded-lg shadow">Nenhum resultado encontrado para a categoria "{filtroTipo}" nesta lista.</p>}
-        <ContatosModal isOpen={isContatosModalOpen} onClose={handleCloseContatosModal} onSave={handleSaveContatos} initialData={selectedResultParaModal?.contatos} />
-        <OutrasListasModal isOpen={isOutrasListasOpen} onClose={() => setIsOutrasListasOpen(false)} data={outrasListasData} isLoading={isLoadingOutrasListas} error={outrasListasError} />
+
+        {!carregando && idListaSelecionada && listaResultados.length === 0 && (
+          <div className="text-center py-16 bg-white rounded-2xl shadow-md border border-dashed border-gray-200 mt-8">
+            <MagnifyingGlassIcon className="h-16 w-16 mx-auto text-gray-300 mb-6" />
+            <p className="text-xl font-semibold text-gray-700">Nenhum resultado encontrado para a categoria "{filtroTipo}" nesta lista.</p>
+          </div>
+        )}
+
+        <ContatosModal
+          isOpen={isContatosModalOpen}
+          onClose={handleCloseContatosModal}
+          onSave={handleSaveContatos}
+          initialData={selectedResultParaModal?.contatos}
+        />
+        <OutrasListasModal
+          isOpen={isOutrasListasOpen}
+          onClose={() => setIsOutrasListasOpen(false)}
+          data={outrasListasData}
+          isLoading={isLoadingOutrasListas}
+          error={outrasListasError}
+        />
       </div>
     );
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <h2 className="text-3xl font-bold text-gray-800 mb-6">Verifique seus resultados</h2>
-      <div className="flex justify-between items-center mb-8 gap-4 flex-wrap">
-        <div className="relative flex-grow max-w-md">
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-          <input type="text" placeholder="Buscar por nome do concurso..." value={termoBusca} onChange={(e) => setTermoBusca(e.target.value)} className="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white shadow-sm" />
+    <div className="p-8 bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen">
+      <h2 className="text-4xl font-bold text-gray-900 mb-10 tracking-tight">Verifique seus resultados</h2>
+      <div className="flex justify-between items-center mb-12 gap-6 flex-wrap">
+        <div className="relative flex-grow max-w-lg">
+          <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Buscar por nome do concurso..."
+            value={termoBusca}
+            onChange={(e) => setTermoBusca(e.target.value)}
+            className="w-full p-4 pl-12 border border-gray-200 rounded-xl focus:ring-4 focus:ring-indigo-100 bg-white shadow-md transition-all duration-300 focus:border-indigo-500 outline-none text-gray-700"
+          />
         </div>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {concursosFiltrados.map(([nomeBase, concursosDoGrupo]) => (
-          <div key={nomeBase} onClick={() => setConcursoAgrupadoSelecionado(nomeBase)} className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer p-6 border border-gray-100 group">
+          <div
+            key={nomeBase}
+            onClick={() => setConcursoAgrupadoSelecionado(nomeBase)}
+            className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer p-6 border border-transparent hover:border-indigo-200 group transform hover:-translate-y-2"
+          >
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-semibold text-gray-800 group-hover:text-blue-600 transition">{nomeBase}</h3>
-              <EyeIcon className="h-5 w-5 text-blue-500 opacity-0 group-hover:opacity-100 transition" />
+              <h3 className="text-lg font-semibold text-gray-800 group-hover:text-indigo-600 transition truncate">{nomeBase}</h3>
+              <EyeIcon className="h-6 w-6 text-indigo-500 opacity-0 group-hover:opacity-100 transition" />
             </div>
-            <p className="text-sm text-gray-500 mt-2">{concursosDoGrupo.length} lista(s) disponível(is)</p>
+            <p className="text-sm text-gray-500 mt-3 font-medium">{concursosDoGrupo.length} lista(s) disponível(is)</p>
           </div>
         ))}
       </div>
+
       {!carregando && concursosFiltrados.length === 0 && (
-        <div className="text-center py-16 bg-white rounded-lg shadow-sm mt-6">
-          <MagnifyingGlassIcon className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-          <h3 className="text-xl font-semibold text-gray-700">Nenhum concurso encontrado</h3>
-          <p className="text-gray-500 mt-2">Tente ajustar os termos da sua busca.</p>
+        <div className="text-center py-20 bg-white rounded-2xl shadow-md mt-10 border border-dashed border-gray-200">
+          <MagnifyingGlassIcon className="h-20 w-20 mx-auto text-gray-300 mb-6" />
+          <h3 className="text-2xl font-semibold text-gray-700 mb-3">Nenhum concurso encontrado</h3>
+          <p className="text-gray-500 text-lg">Tente ajustar os termos da sua busca.</p>
         </div>
       )}
-      <ContatosModal isOpen={isContatosModalOpen} onClose={handleCloseContatosModal} onSave={handleSaveContatos} initialData={selectedResultParaModal?.contatos} />
-      <OutrasListasModal isOpen={isOutrasListasOpen} onClose={() => setIsOutrasListasOpen(false)} data={outrasListasData} isLoading={isLoadingOutrasListas} error={outrasListasError} />
+
+      <ContatosModal
+        isOpen={isContatosModalOpen}
+        onClose={handleCloseContatosModal}
+        onSave={handleSaveContatos}
+        initialData={selectedResultParaModal?.contatos}
+      />
+      <OutrasListasModal
+        isOpen={isOutrasListasOpen}
+        onClose={() => setIsOutrasListasOpen(false)}
+        data={outrasListasData}
+        isLoading={isLoadingOutrasListas}
+        error={outrasListasError}
+      />
     </div>
   );
 }
-
 
 
 
